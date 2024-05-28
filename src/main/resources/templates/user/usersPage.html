@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template/layout.html">
+<body>
+<div layout:fragment="content">
+    <!-- Responsive Table -->
+    <div class="d-flex flex-row justify-content-center align-items-center">
+        <h4 class="fw-bold pt-3">Пользователи</h4>
+    </div>
+    <div class="card">
+        <div class="card-header py-2 d-flex justify-content-end gap-3">
+            <div class="search-input-wrapper col-md-4">
+                <label class="d-flex align-items-center gap-1 w-100">
+                    Search:
+                    <input type="search" class="form-control">
+                </label>
+            </div>
+
+            <a class="btn btn-primary" data-bs-toggle="modal"
+               onclick="openEditModal(-1)"
+               data-bs-target="#modalCenter">
+                <i class="ti ti-plus"></i>
+            </a>
+        </div>
+
+        <div class="card-body">
+            <div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Email</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                        <tr>
+                            <td>1</td>
+                            <td>1</td>
+                            <td>1</td>
+                            <td class="text-nowrap">
+                                <a data-bs-toggle="modal"
+                                   data-bs-target="#modalCenter"
+                                   href="#"
+                                   class="btn btn-primary btn-sm me-2">
+                                    <i class="ti ti-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-danger btn-sm">
+                                    <i class="ti ti-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="modalCenter" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalCenterTitle">Редактировать пользователя</h5>
+                            <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                            ></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col mb-3">
+                                    <label for="nameWithTitle" class="form-label">Name</label>
+                                    <input
+                                            type="text"
+                                            id="nameWithTitle"
+                                            class="form-control"
+                                            placeholder="Enter Name"
+                                    />
+                                    <div id="nameError" class="text-danger"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input
+                                            type="email"
+                                            id="email"
+                                            class="form-control"
+                                            placeholder="Enter Email"
+                                    />
+                                    <div id="emailError" class="text-danger"></div>
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col mb-0">
+                                    <label for="password" class="form-label">Пароль</label>
+                                    <input
+                                            type="password"
+                                            id="password"
+                                            class="form-control"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                    />
+                                    <div id="passwordError" class="text-danger"></div>
+                                </div>
+                                <div class="col mb-0">
+                                    <label for="passwordRepeat" class="form-label">Повторите пароль</label>
+                                    <input
+                                            type="text"
+                                            id="passwordRepeat"
+                                            class="form-control"
+                                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col mb-3">
+                                    <label for="select2StatusUser" class="form-label">Basic</label>
+                                    <select id="select2StatusUser"
+                                            class="select2 form-select form-select-lg"
+                                            data-allow-clear="true"
+                                            name="select2StatusUser">
+                                        </select>
+                                    <div id="statusUserError" class="text-danger"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
+                                Close
+                            </button>
+                            <button type="button" id="saveEditUser" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-center pb-0"></div>
+    </div>
+
+    <script>
+        $(function () {
+            const select2 = $('.select2');
+
+            if (select2.length) {
+                select2.each(function () {
+                    var $this = $(this);
+                    $this.wrap('<div class="position-relative dark-style"></div>').select2({
+                        placeholder: 'Select value',
+                        dropdownParent: $this.parent()
+                    });
+                });
+            }
+        });
+        function openEditModal(userId) {
+            let title = $('#modalCenterTitle')
+            title.text('Редактировать пользователя');
+            if (userId === -1) {
+                userId = 'create'
+                title.text('Создать пользователя');
+                $('#nameWithTitle').val('');
+                $('#email').val('');
+                $('#password').val('');
+                $('#passwordRepeat').val('');
+                $('#saveEditUser').off('click').on('click', function() {
+                    sendEditUser(userId);
+                });
+            } else {
+                title.text('Редактировать пользователя');
+                $.ajax({
+                    url: '/users/' + userId,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#nameWithTitle').val(response.name);
+                        $('#email').val(response.email);
+                        $('#password').val('');
+                        $('#passwordRepeat').val('');
+                        $('#saveEditUser').off('click').on('click', function() {
+                            sendEditUser(response.id);
+                        });
+                    },
+                    error: function(error) {
+                        alert('Error fetching user data!');
+                    }
+                });
+            }
+
+
+        }
+
+        function validateUserForm(error) {
+            var errorData = JSON.parse(error.responseText);
+
+            if (errorData.name) {
+                $('#nameError').text(errorData.name);
+            }
+            if (errorData.email) {
+                $('#emailError').text(errorData.email);
+            }
+            if (errorData.password) {
+                $('#passwordError').text(errorData.password);
+            }
+            if (errorData.role) {
+                $('#statusUserError').text(errorData.role);
+            }
+        }
+
+
+
+        function sendEditUser(userId) {
+            if (userId === 'create') {
+                userId = '';
+            }
+            $.ajax({
+                url: '/users/' + userId,
+                type: userId ? 'PUT' : 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    name: $('#nameWithTitle').val(),
+                    email: $('#email').val(),
+                    password: $('#password').val(),
+                    role: $('#select2StatusUser').val()
+                }),
+                success: function(response) {
+                    $('#modalCenter').modal('hide');
+                    $('#modalCenter').removeClass('show');
+                    $('.modal-backdrop').remove();
+                    currentPage === undefined || currentPage === 0 ? getUsers(0): getUsers(currentPage);
+                    clearFormErrors();
+                },
+                error: function(error) {
+                    validateUserForm(error);
+                }
+            });
+        }
+
+        function clearFormErrors() {
+            let alerts = $('.text-danger');
+            for (let i = 0; i < alerts.length; i++) {
+                alerts[i].innerText = '';
+            }
+        }
+
+
+
+        function deleteUser(userId) {
+            $.ajax({
+                url: '/users/delete/' + userId,
+                type: 'DELETE',
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(error) {
+                    alert('Error deleting user!');
+                }
+            });
+        }
+
+
+
+        function getRoles() {
+            $.ajax({
+                url: '/users/roles',
+                type: 'GET',
+                success: function(response) {
+                    $.each(response, function(index, role) {
+                        console.log(role);
+                        $('#select2StatusUser').append('<option value="' + role + '">' + role + '</option>');
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            getUsers(0);
+            getRoles();
+        });
+
+        let currentPage;
+        let searchText;
+        let timer;
+        $("input[type='search']").on("input", function () {
+            searchText = this.value;
+            clearTimeout(timer);
+            timer = setTimeout(getUsers(0), 500);
+        });
+
+        function getUsers(page) {
+            if (searchText) {
+                getUsersBySearch(page, searchText);
+            } else {
+                getUsersPage(page);
+            }
+        }
+
+        function getUsersPage(page) {
+            $.ajax({
+                type: 'GET',
+                url: 'users/getPage?page=' + page,
+                dataType: 'JSON',
+                success: function (result) {
+                    clearTableLine();
+                    drawTable(result, page);
+                }
+            });
+
+        }
+
+        function getUsersBySearch(page, search) {
+            $.ajax({
+                type: 'POST',
+                url: 'users/getPageSearch?page=' + page + '&search=' + search,
+                dataType: 'json',
+                success: function (result) {
+                    currentPage = page;
+                    clearTableLine();
+                    drawTable(result, page);
+                }
+            });
+        }
+
+        function drawTable(result, page) {
+            for (const data of result.content) {
+
+                $('<tr>\n' +
+                    '<td>' + data.id + '</td>\n' +
+                    '<td>' + data.name + '</td>\n' +
+                    '<td>' + data.email + '</td>\n' +
+                    '<td class="text-nowrap">\n' +
+                    '<a  ' +
+                    ' href="users/' + data.id + '" data-bs-toggle="modal"\n' +
+                    ' onclick="openEditModal(' + data.id + ')"  ' +
+                    'data-bs-target="#modalCenter"' +
+                    ' class="btn btn-primary btn-sm me-2">\n' +
+                    '<i class="ti ti-edit"></i>\n' +
+                    '</a>\n' +
+                    '<a  onclick="deleteUser(' + data.id + ')" class="btn btn-danger btn-sm">\n' +
+                    '<i class="ti ti-trash"></i>\n' +
+                    '</a>' +
+                    '</td>\n' +
+                    '' +
+                    '</tr>').appendTo("tbody");
+            }
+
+            if (result.totalPages > 1) {
+
+                showPagination(result.totalPages);
+
+                switch (page) {
+                    case (result.totalPages - 1):
+                        $(".page-item.last").addClass('disabled');
+                        $(".page-item.next").addClass('disabled');
+                        break;
+                    case 0:
+                        $(".page-item.first").addClass('disabled');
+                        $(".page-item.prev").addClass('disabled');
+                        break;
+                }
+            }
+
+            function showPagination(countItems) {
+                let paginationList = '<ul class="pagination pagination-sm">\n' +
+                    '<li class="page-item first">\n' +
+                    '   <a class="page-link waves-effect" onclick="getUsers(0)"><i class="ti ti-chevrons-left tf-icon fs-6"></i></a>\n' +
+                    '</li>\n' +
+                    '<li class="page-item prev">\n' +
+                    '   <a class="page-link waves-effect" onclick="getUsers(' + (page - 1) + ')"><i class="ti ti-chevron-left tf-icon fs-6"></i></a>\n' +
+                    '</li>\n';
+                for (let item = 0; item < countItems; item++) {
+                    paginationList += '<li class="page-item ' + (page === item ? 'active' : '') + '">\n' +
+                        '<a class="page-link waves-effect" onclick="getUsers(' + item + ')">' + (item + 1) + '</a>\n' +
+                        '</li>';
+                }
+                paginationList += '<li class="page-item next">\n' +
+                    '       <a class="page-link waves-effect" onclick="getUsers(' + (page + 1) + ')"><i class="ti ti-chevron-right tf-icon fs-6"></i></a>\n' +
+                    '   </li>\n' +
+                    '      <li class="page-item last">\n' +
+                    '       <a class="page-link waves-effect" onclick="getUsers(' + (countItems - 1) + ')"><i class="ti ti-chevrons-right tf-icon fs-6"></i></a>\n' +
+                    '      </li>\n' +
+                    '   </ul>\n'
+
+                $(paginationList).appendTo(".card-footer");
+            }
+
+        }
+
+        function clearTableLine() {
+            $("tbody").find("tr").each(function () {
+                this.remove();
+            });
+            $(".card-footer").children().remove();
+        }
+    </script>
+
+</div>
+</body>
+
+
+</html>
