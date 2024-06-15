@@ -1,80 +1,96 @@
 package com.spacelab.coffeeapp.controller.admin;
 
+
+import com.spacelab.coffeeapp.dto.UserDto;
+import com.spacelab.coffeeapp.entity.Entity2;
 import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
+import com.spacelab.coffeeapp.mapper.UserMapper;
+import com.spacelab.coffeeapp.repository.EntityRepository;
 import com.spacelab.coffeeapp.service.UserService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+
+@RequestMapping("/user")
+@AllArgsConstructor
 @Controller
-@RequiredArgsConstructor
-@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
-    private AuthenticationManager authenticationManager;
-    private final int pageSize = 5;
+    private final UserMapper userMapper;
 
-    @GetMapping({"/", ""})
-    public ModelAndView viewUsers(Model model) {
-        Page<User> users = userService.findAllUsers(1, pageSize);
-        model.addAttribute("title", "Пользователи");
+    @ModelAttribute
+    public void addAttributes(Model model) {
         model.addAttribute("pageActive", "users");
-        model.addAttribute("users", users);
-        return new ModelAndView("user/usersPage");
+        model.addAttribute("title", "Пользователи");
     }
 
     @GetMapping("/roles")
-    @ResponseBody
-    public List<Role> getRole() {
+    public @ResponseBody List<Role> getRole() {
         return List.of(Role.ADMIN, Role.MANAGER);
+    }
+
+
+    @GetMapping({"/", ""})
+    public ModelAndView index() {
+        return new ModelAndView("user/usersPage");
+    }
+
+    @GetMapping("/getAll")
+    @ResponseBody
+    public Page<UserDto> getEntities(@RequestParam(defaultValue = "0") int page,
+                                     @RequestParam(defaultValue = "") String search,
+                                     @RequestParam(defaultValue = "5") Integer size) {
+        if (search.isEmpty()) {
+            return userMapper.toDtoListPage(userService.findAllUsers(page, size));
+        } else {
+            return userMapper.toDtoListPage(userService.findUsersByRequest(page, size, search));
+        }
     }
 
     @GetMapping("/{id}")
     @ResponseBody
-    public User getUser(@PathVariable Long id) {
+    public User getEntity(@PathVariable Long id) {
         return userService.getUser(id);
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
-        userService.saveUser(userDetails);
-
-        return ResponseEntity.ok(userDetails);
-    }
-
-    @PostMapping("/create")
-    public ResponseEntity<?> createUser(@Valid @RequestBody User userDetails) {
-        userService.saveUser(userDetails);
-        return ResponseEntity.ok(userDetails);
-    }
-
-
-
-    @GetMapping("/getPage")
-    public @ResponseBody Page<User> getUsersOnPage(@RequestParam int page) {
-        return userService.findAllUsers(page, pageSize);
-    }
-
-    @GetMapping("/getPageSearch")
-    public @ResponseBody Page<User> getUsersPageBySearch(@RequestParam int page, @RequestParam String search) {
-        return userService.findUsersByRequest(page, pageSize, search);
-    }
-
-    @PostMapping("/delete/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(userService.getUser(id));
+    @PostMapping({"/create"})
+    @ResponseBody
+    public ResponseEntity<?> createEntity(@RequestBody UserDto user) {
+         userService.saveUser(userMapper.toEntity(user));
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updateEntity(@PathVariable Long id, @Valid @RequestBody UserDto user) {
+
+        userService.updateUser(id, user);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteEntity(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

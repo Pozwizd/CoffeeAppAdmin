@@ -23,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Page<User> findAll(Pageable pageable);
 
     @Override
-    Page<User> findAll(Specification<User> spec, Pageable pageable);}
+    Page<User> findAll(Specification<User> spec, Pageable pageable);
+
+    Optional<User> findByEmail(String email);
+}

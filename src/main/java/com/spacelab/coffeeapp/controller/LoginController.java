@@ -1,10 +1,16 @@
 package com.spacelab.coffeeapp.controller;
 
+import com.spacelab.coffeeapp.auth.AuthenticationRequest;
+import com.spacelab.coffeeapp.auth.AuthenticationResponse;
+import com.spacelab.coffeeapp.auth.AuthenticationService;
 import com.spacelab.coffeeapp.service.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,21 +21,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 
 
 @Controller
+@RequiredArgsConstructor
 public class LoginController {
     private final AuthenticationManager authenticationManager;
+    private final AuthenticationService service;
 
-    public LoginController(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
 
-    }
 
     @GetMapping("/login")
     public ModelAndView login(Model model){
@@ -37,6 +40,25 @@ public class LoginController {
 
         return new ModelAndView("/login");
     }
+
+
+
+
+//    @PostMapping("/login")
+//    public void authenticateUser(@RequestParam(name = "email") String email,
+//                                 @RequestParam(name = "password") String password,
+//                                 HttpServletRequest request) {
+//        Authentication authentication;
+//        try {authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
+//            SecurityContext context = SecurityContextHolder.getContext();
+//            context.setAuthentication(authentication);
+//            HttpSession session = request.getSession(true);
+//            session.setAttribute("SPRING_SECURITY_CONTEXT", context);
+//        } catch (BadCredentialsException e) {
+//            new ModelAndView("redirect:/login", HttpStatus.BAD_REQUEST);
+//        }
+//    }
+
 
     @PostMapping("/login")
     public void authenticateUser(@RequestParam(name = "email") String email,
@@ -52,6 +74,7 @@ public class LoginController {
             new ModelAndView("redirect:/login", HttpStatus.BAD_REQUEST);
         }
     }
+
 
 
 

@@ -9,19 +9,30 @@
         <h4 class="fw-bold pt-3">Пользователи</h4>
     </div>
     <div class="card">
-        <div class="card-header py-2 d-flex justify-content-end gap-3">
-            <div class="search-input-wrapper col-md-4">
-                <label class="d-flex align-items-center gap-1 w-100">
-                    Search:
-                    <input type="search" class="form-control">
+        <div class="card-header py-2 d-flex align-items-center">
+            <div class="d-flex align-items-center me-auto">
+                <label class="d-flex align-items-center gap-1">
+                    Show:
+                    <select id="pageSize" class="form-control">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
                 </label>
             </div>
-
-            <a class="btn btn-primary" data-bs-toggle="modal"
-               onclick="openEditModal(-1)"
-               data-bs-target="#modalCenter">
-                <i class="ti ti-plus"></i>
-            </a>
+            <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
+                <div class="search-input-wrapper col-md-4">
+                    <label class="d-flex align-items-center gap-2 w-100">
+                        Search:
+                        <input type="text" id="search" class="form-control" placeholder="Search...">
+                    </label>
+                </div>
+            </div>
+            <div class="d-flex ms-auto">
+                <button class="btn btn-primary" data-bs-toggle="modal" id="createEntity" data-bs-target="#entityModal">
+                    <i class="ti ti-plus"></i>
+                </button>
+            </div>
         </div>
 
         <div class="card-body">
@@ -29,49 +40,36 @@
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Имя</th>
-                            <th>Email</th>
-                            <th>Действия</th>
+                        <tr id="table-head">
+                            <td class="text-center">ID</td>
+                            <td class="text-center">Имя</td>
+                            <td class="text-center">Почта</td>
+                            <td class="text-center">Права</td>
+                            <td class="text-center">Actions</td>
                         </tr>
                         </thead>
-                        <tbody class="table-border-bottom-0">
-                        <tr>
-                            <td>1</td>
-                            <td>1</td>
-                            <td>1</td>
-                            <td class="text-nowrap">
-                                <a data-bs-toggle="modal"
-                                   data-bs-target="#modalCenter"
-                                   href="#"
-                                   class="btn btn-primary btn-sm me-2">
-                                    <i class="ti ti-edit"></i>
-                                </a>
-                                <a href="#" class="btn btn-danger btn-sm">
-                                    <i class="ti ti-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        </tbody>
+                        <tbody id="table-body"></tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Modal -->
-            <div class="modal fade" id="modalCenter" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalCenterTitle">Редактировать пользователя</h5>
-                            <button
-                                    type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close"
-                            ></button>
-                        </div>
-                        <div class="modal-body">
+        <div class="card-footer d-flex justify-content-center pb-0">
+            <nav>
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+
+        <!-- Entity Modal -->
+        <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="entity-modal-body">
+                        <form id="entity-form">
                             <div class="row">
                                 <div class="col mb-3">
                                     <label for="nameWithTitle" class="form-label">Name</label>
@@ -119,157 +117,173 @@
                             </div>
                             <div class="row">
                                 <div class="col mb-3">
-                                    <label for="select2StatusUser" class="form-label">Basic</label>
-                                    <select id="select2StatusUser"
-                                            class="select2 form-select form-select-lg"
+                                    <label for="role" class="form-label">Basic</label>
+                                    <select id="role"
+                                            class="form-select form-select"
                                             data-allow-clear="true"
-                                            name="select2StatusUser">
-                                        </select>
-                                    <div id="statusUserError" class="text-danger"></div>
+                                            name="role">
+                                    </select>
+                                    <div id="roleError" class="text-danger"></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-                                Close
-                            </button>
-                            <button type="button" id="saveEditUser" class="btn btn-primary">Save changes</button>
-                        </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="save-entity-btn">Save changes</button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card-footer d-flex justify-content-center pb-0"></div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить этот элемент?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
     <script>
-        $(function () {
-            const select2 = $('.select2');
 
-            if (select2.length) {
-                select2.each(function () {
-                    var $this = $(this);
-                    $this.wrap('<div class="position-relative dark-style"></div>').select2({
-                        placeholder: 'Select value',
-                        dropdownParent: $this.parent()
-                    });
-                });
-            }
-        });
-        function openEditModal(userId) {
-            let title = $('#modalCenterTitle')
-            title.text('Редактировать пользователя');
-            if (userId === -1) {
-                userId = 'create'
-                title.text('Создать пользователя');
-                $('#nameWithTitle').val('');
-                $('#email').val('');
-                $('#password').val('');
-                $('#passwordRepeat').val('');
-                $('#saveEditUser').off('click').on('click', function() {
-                    sendEditUser(userId);
-                });
-            } else {
-                title.text('Редактировать пользователя');
+        $(document).ready(function () {
+            const pageSize = parseInt($('#pageSize').val());
+            loadEntities(0, '', pageSize);
+
+            $('#search').on('keyup', function () {
+                const search = $(this).val();
+                loadEntities(0, search, pageSize);
+            });
+
+            $('#pageSize').on('change', function () {
+                const pageSize = parseInt($(this).val());
+                loadEntities(0, '', pageSize);
+            });
+
+            $(document).on('click', '.page-link', function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                loadEntities(page, $('#search').val(), pageSize);
+            });
+
+            $(document).on('click', '.edit-entity-btn', function () {
+                const id = $(this).data('id');
                 $.ajax({
-                    url: '/users/' + userId,
-                    type: 'GET',
-                    success: function(response) {
-                        $('#nameWithTitle').val(response.name);
-                        $('#email').val(response.email);
+                    url: `/user/${id}`,
+                    method: 'GET',
+                    success: function (entity) {
+                        $('#nameWithTitle').val(entity.name);
+                        $('#email').val(entity.email);
                         $('#password').val('');
                         $('#passwordRepeat').val('');
-                        $('#saveEditUser').off('click').on('click', function() {
-                            sendEditUser(response.id);
-                        });
+                        $('#role').val(entity.role);
+                        $('#save-entity-btn').data('id', entity.id);
+                        clearEntitiesFormError();
                     },
-                    error: function(error) {
-                        alert('Error fetching user data!');
+                    error: function (err) {
+                        console.error('Error fetching entity:', err);
                     }
                 });
-            }
+            });
 
-
-        }
-
-        function validateUserForm(error) {
-            var errorData = JSON.parse(error.responseText);
-
-            if (errorData.name) {
-                $('#nameError').text(errorData.name);
-            }
-            if (errorData.email) {
-                $('#emailError').text(errorData.email);
-            }
-            if (errorData.password) {
-                $('#passwordError').text(errorData.password);
-            }
-            if (errorData.role) {
-                $('#statusUserError').text(errorData.role);
-            }
-        }
-
-
-
-        function sendEditUser(userId) {
-            if (userId === 'create') {
-                userId = '';
-            }
-            $.ajax({
-                url: '/users/' + userId,
-                type: userId ? 'PUT' : 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
+            $(document).on('click', '#save-entity-btn', function () {
+                const id = $(this).data('id');
+                const userDto = {
+                    id: id,
                     name: $('#nameWithTitle').val(),
                     email: $('#email').val(),
                     password: $('#password').val(),
-                    role: $('#select2StatusUser').val()
-                }),
-                success: function(response) {
-                    $('#modalCenter').modal('hide');
-                    $('#modalCenter').removeClass('show');
-                    $('.modal-backdrop').remove();
-                    currentPage === undefined || currentPage === 0 ? getUsers(0): getUsers(currentPage);
-                    clearFormErrors();
-                },
-                error: function(error) {
-                    validateUserForm(error);
+                    role: $('#role').val()
+                };
+
+                if (id) {
+                    $.ajax({
+                        url: `/user/${id}`,
+                        method: 'PUT',
+                        contentType: 'application/json; charset=UTF-8',
+                        data: JSON.stringify(userDto),
+                        success: function () {
+                            $('#entityModal').modal('hide');
+                            loadEntities(0, $('#search').val(), $('#pageSize').val());
+                            $('#entityModal').removeClass('show');
+                            $('.modal-backdrop').remove();
+                            resetForm();
+                        },
+                        error: function (err) {
+                            console.error('Error updating entity:', err);
+                            validateEntitiesForm(err);
+                        }
+                    });
+                } else {
+                    userDto.id = null;
+                    $.ajax({
+                        url: '/user/create',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(userDto),
+                        success: function () {
+                            $('#entityModal').modal('hide');
+                            loadEntities(0, $('#search').val(), $('#pageSize').val());
+                            $('#entityModal').removeClass('show');
+                            $('.modal-backdrop').remove();
+                            resetForm();
+                        },
+                        error: function (err) {
+                            validateEntitiesForm(err);
+                            console.error('Error creating entity:', err);
+                        }
+                    });
                 }
             });
-        }
 
-        function clearFormErrors() {
-            let alerts = $('.text-danger');
-            for (let i = 0; i < alerts.length; i++) {
-                alerts[i].innerText = '';
+            $(document).on('click', '.delete-entity-btn', function () {
+                const id = $(this).data('id');
+                $('#confirm-delete-btn').data('id', id);
+            });
+
+            $(document).on('click', '#confirm-delete-btn', function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/user/${id}`,
+                    method: 'DELETE',
+                    success: function () {
+                        $('#deleteConfirmModal').modal('hide');
+                        loadEntities(0, $('#search').val(), $('#pageSize').val());
+                        $('#entityModal').removeClass('show');
+                        $('.modal-backdrop').remove();
+                    },
+                    error: function (err) {
+                        console.error('Error deleting entity:', err);
+                    }
+                });
+            });
+
+            function resetForm () {
+                $('#entity-form')[0].reset();
+                $('#save-entity-btn').data('id', '');
             }
-        }
 
-
-
-        function deleteUser(userId) {
-            $.ajax({
-                url: '/users/delete/' + userId,
-                type: 'DELETE',
-                success: function(response) {
-                    console.log(response);
-                },
-                error: function(error) {
-                    alert('Error deleting user!');
-                }
-            });
-        }
-
-
+            getRoles();
+        });
 
         function getRoles() {
             $.ajax({
-                url: '/users/roles',
+                url: '/user/roles',
                 type: 'GET',
                 success: function(response) {
                     $.each(response, function(index, role) {
-                        console.log(role);
-                        $('#select2StatusUser').append('<option value="' + role + '">' + role + '</option>');
+                        $('#role').append('<option value="' + role + '">' + role + '</option>');
                     });
                 },
                 error: function(error) {
@@ -277,129 +291,83 @@
                 }
             });
         }
-    </script>
 
-    <script>
-        $(document).ready(function () {
-            getUsers(0);
-            getRoles();
-        });
+        function loadEntities(page = 0, search = '', pageSize = 5) {
+            $.ajax({
+                url: `/user/getAll?page=${page}&search=${search}&size=${pageSize}`,
+                method: 'GET',
+                success: function (data) {
+                    const rows = data.content.map(entity => `
+                <tr>
+                    <td class="text-center">${entity.id}</td>
+                    <td class="text-center">${entity.name}</td>
+                    <td class="text-center">${entity.email}</td>
+                    <td class="text-center">${entity.role}</td>
+                    <td class="d-flex justify-content-center">
+                        <button class="btn btn-sm btn-primary edit-entity-btn" data-id="${entity.id}" data-bs-toggle="modal" data-bs-target="#entityModal"><i class="ti ti-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger delete-entity-btn" data-id="${entity.id}" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"><i class="ti ti-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+                    $('#table-body').html(rows);
+                    setupPagination(data.totalPages, page);
+                },
+                error: function (err) {
+                    console.error('Error loading entities:', err);
+                }
+            });
+        }
 
-        let currentPage;
-        let searchText;
-        let timer;
-        $("input[type='search']").on("input", function () {
-            searchText = this.value;
-            clearTimeout(timer);
-            timer = setTimeout(getUsers(0), 500);
-        });
+        function validateEntitiesForm(error) {
+            const errorData = error.responseJSON;
+            for (const field in errorData) {
+                const errorMessage = errorData[field];
+                $(`#${field}Error`).text(errorMessage);
+            }
+        }
+        function clearEntitiesFormError() {
+            $('.text-danger').html('');
+        }
 
-        function getUsers(page) {
-            if (searchText) {
-                getUsersBySearch(page, searchText);
+
+        function setupPagination(totalPages, currentPage) {
+            let paginationItems = '';
+
+            if (currentPage > 0) {
+                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
             } else {
-                getUsersPage(page);
-            }
-        }
-
-        function getUsersPage(page) {
-            $.ajax({
-                type: 'GET',
-                url: 'users/getPage?page=' + page,
-                dataType: 'JSON',
-                success: function (result) {
-                    clearTableLine();
-                    drawTable(result, page);
-                }
-            });
-
-        }
-
-        function getUsersBySearch(page, search) {
-            $.ajax({
-                type: 'POST',
-                url: 'users/getPageSearch?page=' + page + '&search=' + search,
-                dataType: 'json',
-                success: function (result) {
-                    currentPage = page;
-                    clearTableLine();
-                    drawTable(result, page);
-                }
-            });
-        }
-
-        function drawTable(result, page) {
-            for (const data of result.content) {
-
-                $('<tr>\n' +
-                    '<td>' + data.id + '</td>\n' +
-                    '<td>' + data.name + '</td>\n' +
-                    '<td>' + data.email + '</td>\n' +
-                    '<td class="text-nowrap">\n' +
-                    '<a  ' +
-                    ' href="users/' + data.id + '" data-bs-toggle="modal"\n' +
-                    ' onclick="openEditModal(' + data.id + ')"  ' +
-                    'data-bs-target="#modalCenter"' +
-                    ' class="btn btn-primary btn-sm me-2">\n' +
-                    '<i class="ti ti-edit"></i>\n' +
-                    '</a>\n' +
-                    '<a  onclick="deleteUser(' + data.id + ')" class="btn btn-danger btn-sm">\n' +
-                    '<i class="ti ti-trash"></i>\n' +
-                    '</a>' +
-                    '</td>\n' +
-                    '' +
-                    '</tr>').appendTo("tbody");
+                paginationItems += `<li class="page-item disabled"><a class="page-link">&laquo;</a></li>`;
             }
 
-            if (result.totalPages > 1) {
-
-                showPagination(result.totalPages);
-
-                switch (page) {
-                    case (result.totalPages - 1):
-                        $(".page-item.last").addClass('disabled');
-                        $(".page-item.next").addClass('disabled');
-                        break;
-                    case 0:
-                        $(".page-item.first").addClass('disabled');
-                        $(".page-item.prev").addClass('disabled');
-                        break;
+            if (currentPage > 1) {
+                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="0">1</a></li>`;
+                if (currentPage > 2) {
+                    paginationItems += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
                 }
             }
 
-            function showPagination(countItems) {
-                let paginationList = '<ul class="pagination pagination-sm">\n' +
-                    '<li class="page-item first">\n' +
-                    '   <a class="page-link waves-effect" onclick="getUsers(0)"><i class="ti ti-chevrons-left tf-icon fs-6"></i></a>\n' +
-                    '</li>\n' +
-                    '<li class="page-item prev">\n' +
-                    '   <a class="page-link waves-effect" onclick="getUsers(' + (page - 1) + ')"><i class="ti ti-chevron-left tf-icon fs-6"></i></a>\n' +
-                    '</li>\n';
-                for (let item = 0; item < countItems; item++) {
-                    paginationList += '<li class="page-item ' + (page === item ? 'active' : '') + '">\n' +
-                        '<a class="page-link waves-effect" onclick="getUsers(' + item + ')">' + (item + 1) + '</a>\n' +
-                        '</li>';
-                }
-                paginationList += '<li class="page-item next">\n' +
-                    '       <a class="page-link waves-effect" onclick="getUsers(' + (page + 1) + ')"><i class="ti ti-chevron-right tf-icon fs-6"></i></a>\n' +
-                    '   </li>\n' +
-                    '      <li class="page-item last">\n' +
-                    '       <a class="page-link waves-effect" onclick="getUsers(' + (countItems - 1) + ')"><i class="ti ti-chevrons-right tf-icon fs-6"></i></a>\n' +
-                    '      </li>\n' +
-                    '   </ul>\n'
-
-                $(paginationList).appendTo(".card-footer");
+            for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                paginationItems += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`;
             }
 
+            if (currentPage < totalPages - 2) {
+                if (currentPage < totalPages - 3) {
+                    paginationItems += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
+                }
+                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages - 1}">${totalPages}</a></li>`;
+            }
+
+            if (currentPage < totalPages - 1) {
+                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
+            } else {
+                paginationItems += `<li class="page-item disabled"><a class="page-link">&raquo;</a></li>`;
+            }
+
+            $('#pagination').html(paginationItems);
         }
 
-        function clearTableLine() {
-            $("tbody").find("tr").each(function () {
-                this.remove();
-            });
-            $(".card-footer").children().remove();
-        }
     </script>
+
 
 </div>
 </body>

@@ -1,22 +1,27 @@
 package com.spacelab.coffeeapp.service.Imp;
 
+
+import com.spacelab.coffeeapp.dto.UserDto;
+import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
 import com.spacelab.coffeeapp.repository.UserRepository;
 import com.spacelab.coffeeapp.service.UserService;
 import com.spacelab.coffeeapp.specification.UserSpecification;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 
 @Service
@@ -24,11 +29,15 @@ import java.util.List;
 public class UserServiceImp implements UserService, UserDetailsService {
     private final UserRepository userRepository;
     private static final Logger logger = LogManager.getLogger(UserServiceImp.class);
+    private final PasswordEncoder passwordEncoder;
+
+
 
     @Override
-    public void saveUser(User user) {
+    public User saveUser(User user) {
         logger.info("Save user: {}", user);
         userRepository.save(user);
+        return user;
     }
 
     @Override
@@ -44,21 +53,32 @@ public class UserServiceImp implements UserService, UserDetailsService {
     }
 
     @Override
-    public void updateUser(User user) {
-        logger.info("Update user: " + user);
-        userRepository.save(user);
+    public void updateUser(Long id, UserDto user) {
+        userRepository.findById(id).map(user1 -> {
+            user1.setName(user.getName());
+            user1.setEmail(user.getEmail());
+            user1.setRole(Role.valueOf(user.getRole()));
+            user1.setPassword(user.getPassword());
+            userRepository.save(user1);
+            return user1;
+        }).orElseThrow(() -> new RuntimeException("Entity not found"));
     }
 
     @Override
     public void deleteUser(User user) {
-        logger.info("Delete user: " + user);
+        logger.info("Delete user: {}", user);
         userRepository.delete(user);
+    }
+    @Override
+    public void deleteUser(Long id) {
+        logger.info("Delete user by id: {}", id);
+        userRepository.deleteById(id);
     }
 
     @Override
     public Page<User> findAllUsers(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        logger.info("Get all users");
+        logger.info("Get all users with pageable: {}", pageable);
         return userRepository.findAll(pageable);
     }
 

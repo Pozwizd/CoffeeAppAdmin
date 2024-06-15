@@ -65,44 +65,44 @@
 
             <ul class="menu-inner py-1">
                 <!-- Page -->
-                <li class="menu-item" th:classappend="${pageActive == 'users' ? 'active' : ''}">
-                    <a th:href="@{/users}" class="menu-link active">
-                        <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                <li th:classappend="${pageActive == 'statistic' ? 'active' : ''}" class="menu-item" >
+                    <a th:href="@{/statistic}" class="menu-link active">
+                        <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Статистика</div>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a th:href="@{/}" class="menu-link" >
+                <li th:classappend="${pageActive == 'customers' ? 'active' : ''}" class="menu-item">
+                    <a th:href="@{/customer}" class="menu-link" >
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Клиенты</div>
                     </a>
                 </li>
-                <li class="menu-item" >
-                    <a th:href="@{/}" class="menu-link">
+                <li th:classappend="${pageActive == 'categories' ? 'active' : ''}" class="menu-item" >
+                    <a th:href="@{/categories}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Категории</div>
                     </a>
                 </li>
-                <li class="menu-item" >
-                    <a th:href="@{/}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
-                        <div>Локации</div>
-                    </a>
-                </li>
-                <li class="menu-item" >
-                    <a th:href="@{/}" class="menu-link">
+                <li th:classappend="${pageActive == 'products' ? 'active' : ''}" class="menu-item" >
+                    <a th:href="@{/products}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Продукты</div>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a th:href="@{/}" class="menu-link">
+                <li th:classappend="${pageActive == 'orders' ? 'active' : ''}" class="menu-item">
+                    <a th:href="@{/orders}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Заказы</div>
                     </a>
                 </li>
+                <li th:classappend="${pageActive == 'locations' ? 'active' : ''}" class="menu-item" >
+                    <a th:href="@{/location}" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <div>Локации</div>
+                    </a>
+                </li>
                 <li class="menu-item" th:classappend="${pageActive == 'users' ? 'active' : ''}">
-                    <a th:href="@{/users}" class="menu-link">
+                    <a th:href="@{/user/}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Пользователи</div>
                     </a>
@@ -245,7 +245,6 @@
     <!-- Drag Target Area To SlideIn Menu On Small Screens -->
     <div class="drag-target"></div>
 </div>
-
 
 </body>
 </html>
