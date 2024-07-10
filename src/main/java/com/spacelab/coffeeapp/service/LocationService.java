@@ -19,4 +19,5 @@ public interface LocationService {
     Page<Location> findAllLocations(int page, int pageSize);
     Page<Location> findLocationsByRequest(int page, int pageSize, String search);
 
+    long countLocations();
 }

@@ -80,4 +80,9 @@ public class CustomerServiceImp implements CustomerService {
         log.info("Get customers by request: {}", search);
         return customerRepository.findAll(specification, pageable);
     }
+
+    @Override
+    public long countCustomers() {
+        return customerRepository.count();
+    }
 }

@@ -3,6 +3,7 @@ package com.spacelab.coffeeapp.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,34 +19,25 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dateTimeOfCreate;
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dateTimeOfUpdate;
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dateTimeOfReady;
 
     @OneToOne(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "delivery_id")
     private Delivery delivery;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            CascadeType.DETACH,
-            CascadeType.MERGE,
-            CascadeType.PERSIST,
-            CascadeType.REFRESH})
-    @JoinTable(
-            name = "order_product",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products = new ArrayList<>();
+    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
-
+    @Enumerated(EnumType.STRING)
     private Payment payment;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     private OrderStatus status;
@@ -58,6 +50,7 @@ public class Orders {
         DONE,
         CANCELLED
     }
+
     public enum Payment {
         CASH,
         CARD

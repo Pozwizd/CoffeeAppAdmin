@@ -20,6 +20,8 @@ public class AttributeValue {
 
     private Double price;
 
+    private Double priceWithDiscount;
+    
     @ManyToOne
     @JoinColumn(name = "attribute_product_id")
     private AttributeProduct attributeProduct;

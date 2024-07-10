@@ -1,3 +1,7 @@
+server:
+  servlet:
+    session:
+      timeout: 30m
 
 
 spring:
@@ -32,7 +36,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
 
   file:
-    name: "C:\\Users\\Belwerk\\Downloads\\ProjectFiles\\CoffeeApp-R.Miahkykh\\logs\\kino_cms.log"
+    name: "C:\\Users\\Belwerk\\Downloads\\ProjectFiles\\CoffeeApp-R.Miahkykh\\logs\\CoffeeApp.log"
 
   level:
     file: "INFO"
@@ -42,6 +46,4 @@ application:
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-      expiration: 86400000 # a day
-      refresh-token:
-        expiration: 604800000 # 7 days
+      expiration: 604800000 # 7 days

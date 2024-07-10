@@ -19,6 +19,17 @@ public class Category {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "category")
     private List<Product> products = new ArrayList<>();
+
+
+    public enum Status {
+        ACTIVE,
+        INACTIVE
+    }
+
 }
+

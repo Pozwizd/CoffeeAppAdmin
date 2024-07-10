@@ -4,10 +4,176 @@
       layout:decorate="template/layout.html">
 <body>
 <div layout:fragment="content">
-    <div class="container">
-        Заказы
+    <!-- Responsive Table -->
+    <div class="d-flex flex-row justify-content-center align-items-center">
+        <h4 class="fw-bold pt-3" th:text="${title}"></h4>
     </div>
+    <div class="card">
+        <div class="card-header py-2 d-flex align-items-center">
+            <div class="d-flex align-items-center me-auto">
+                <label class="d-flex align-items-center gap-1">
+                    Показать:
+                    <select id="pageSize" class="form-control">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </label>
+            </div>
+        </div>
 
+        <div class="card-body">
+            <div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr id="table-head">
+                            <td class="text-center">ID</td>
+                            <td class="text-center">Дата создания</td>
+                            <td class="text-center">Дата обновления</td>
+                            <td class="text-center">Дата готовности</td>
+                            <td class="text-center">Статус</td>
+                            <td class="text-center"></td>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-center pb-0">
+            <nav>
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmModalLabel">Подтвердите удаление</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить этот элемент?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            loadEntities(0, $('#pageSize').val());
+            let currentPage = 0;
+            $('#pageSize').on('change', function () {
+                loadEntities(currentPage, '', $('#pageSize').val());
+            });
+            function loadEntities(page, pageSize) {
+                $.ajax({
+                    url: '/orders/getAll',
+                    method: 'GET',
+                    data: {
+                        page: page,
+                        size: pageSize,
+                    },
+                    success: function (response) {
+                        const locations = response.content;
+                        const totalPages = response.totalPages;
+                        renderEntitiesTable(locations);
+                        renderPagination(page, totalPages);
+                    },
+                    error: function (err) {
+                        console.error('Ошибка загрузки сущностей:', err);
+                    }
+                });
+            }
+
+            function renderEntitiesTable(orders) {
+                const tableBody = $('#table-body');
+                tableBody.empty();
+                console.log(orders);
+
+                orders.forEach(order => {
+
+                    let dateTimeOfCreate = moment(order.dateTimeOfCreate).format("YYYY-MM-DDTHH:mm");
+                    console.log(dateTimeOfCreate);
+                    let dateTimeOfUpdate = new Date(order.dateTimeOfUpdate).toLocaleDateString('ru-RU');
+                    console.log(dateTimeOfUpdate);
+                    let dateTimeOfReady = new Date(order.dateTimeOfReady).toLocaleDateString('ru-RU');
+                    console.log(dateTimeOfReady);
+                    const row = `<tr>
+                        <td class="text-center">${order.id}</td>
+                        <td class="text-center">${order.dateTimeOfCreate}</td>
+                        <td class="text-center">${order.dateTimeOfUpdate}</td>
+                        <td class="text-center">${order.dateTimeOfReady}</td>
+                        <td class="text-center">${order.status}</td>
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-primary edit-entity-btn" methods="GET" href="/orders/${order.id}">
+                                <i class="ti ti-edit"></i>
+                            </a>
+                            <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${order.id}" data-bs-target="#deleteConfirmModal">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                    tableBody.append(row);
+                });
+            }
+
+            function renderPagination(currentPage, totalPages) {
+                const pagination = $('#pagination');
+                pagination.empty();
+
+                if (totalPages > 1) {
+                    const prevPage = currentPage > 0 ? currentPage - 1 : 0;
+                    const nextPage = currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1;
+
+                    pagination.append(`<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${prevPage}">Previous</a>
+                    </li>`);
+
+                    for (let i = 0; i < totalPages; i++) {
+                        pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
+                        </li>`);
+                    }
+
+                    pagination.append(`<li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${nextPage}">Next</a>
+                    </li>`);
+                }
+            }
+
+            $(document).on('click', '#confirm-delete-btn', function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/product/${id}`,
+                    method: 'DELETE',
+                    success: function () {
+                        $('#deleteConfirmModal').modal('hide');
+                        loadEntities(currentPage, $('#search').val(), pageSize);
+                        $('#deleteConfirmModal').removeClass('show');
+                        $('.modal-backdrop').remove();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка удаления сущности:', err);
+                    }
+                });
+            });
+        });
+
+
+
+
+    </script>
+
+    <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 </div>
 </body>
 </html>

@@ -341,6 +341,7 @@
                 } else {
                     customers.forEach(customer => {
                         let dateOfBirth = new Date(customer.dateOfBirth).toLocaleDateString('ru-RU'); ;
+
                         const row = `<tr>
                         <td class="text-center">${customer.id}</td>
                         <td class="text-center">${customer.name}</td>

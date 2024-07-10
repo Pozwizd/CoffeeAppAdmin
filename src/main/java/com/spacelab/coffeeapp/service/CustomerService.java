@@ -19,4 +19,6 @@ public interface CustomerService {
     void deleteCustomer(Long id);
     Page<Customer> findAllCustomer(int page, int pageSize);
     Page<Customer> findCustomerByRequest(int page, int pageSize, String search);
+
+    long countCustomers();
 }

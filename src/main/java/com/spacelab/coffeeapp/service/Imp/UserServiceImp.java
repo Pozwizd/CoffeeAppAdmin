@@ -105,6 +105,11 @@ public class UserServiceImp implements UserService, UserDetailsService {
     }
 
     @Override
+    public int countUsers() {
+        return (int) userRepository.count();
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         logger.info("Get UserDetails for Spring Security by email: {}", email);
         return userRepository

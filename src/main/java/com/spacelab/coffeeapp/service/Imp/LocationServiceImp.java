@@ -83,4 +83,9 @@ public class LocationServiceImp implements LocationService {
         log.info("Get all users by request: {}", search);
         return locationRepository.findAll(specification, pageable);
     }
+
+    @Override
+    public long countLocations() {
+        return locationRepository.count();
+    }
 }

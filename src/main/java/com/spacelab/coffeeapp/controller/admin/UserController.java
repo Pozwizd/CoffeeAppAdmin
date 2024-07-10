@@ -2,35 +2,28 @@ package com.spacelab.coffeeapp.controller.admin;
 
 
 import com.spacelab.coffeeapp.dto.UserDto;
-import com.spacelab.coffeeapp.entity.Entity2;
 import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
 import com.spacelab.coffeeapp.mapper.UserMapper;
-import com.spacelab.coffeeapp.repository.EntityRepository;
 import com.spacelab.coffeeapp.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 
 @RequestMapping("/user")
 @AllArgsConstructor
 @Controller
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -49,7 +42,11 @@ public class UserController {
 
 
     @GetMapping({"/", ""})
-    public ModelAndView index() {
+    public ModelAndView index( HttpSession session) {
+        User user = new User();
+        user.setName("test");
+        user.setPassword("test");
+        session.setAttribute("userList", user);
         return new ModelAndView("user/usersPage");
     }
 
@@ -57,7 +54,9 @@ public class UserController {
     @ResponseBody
     public Page<UserDto> getEntities(@RequestParam(defaultValue = "0") int page,
                                      @RequestParam(defaultValue = "") String search,
-                                     @RequestParam(defaultValue = "5") Integer size) {
+                                     @RequestParam(defaultValue = "5") Integer size,
+                                     HttpSession session) {
+
         if (search.isEmpty()) {
             return userMapper.toDtoListPage(userService.findAllUsers(page, size));
         } else {

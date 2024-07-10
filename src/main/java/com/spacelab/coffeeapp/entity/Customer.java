@@ -12,15 +12,14 @@ import java.util.List;
 @Data
 @Entity
 public class Customer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
     private String name;
-
     private String email;
-
     private String password;
 
     @Column(columnDefinition="DATE")
@@ -28,11 +27,10 @@ public class Customer {
     private Date dateOfBirth;
 
     private String address;
-
     private String phoneNumber;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "customer")
-    List<Orders> orders = new ArrayList<>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer", cascade = CascadeType.ALL)
+    private List<Orders> orders = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private Language language;

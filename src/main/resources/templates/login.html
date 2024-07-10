@@ -114,11 +114,11 @@
                     <!-- /Logo -->
 <!--                    <form id="formAuthentication" class="mb-3" th:action="@{/login}" method="POST">-->
 <!--                        <div class="mb-3">-->
-<!--                            <label for="email" class="form-label">Email or Username</label>-->
+<!--                            <label for="username" class="form-label">Email or Username</label>-->
 <!--                            <input-->
 <!--                                    type="text"-->
 <!--                                    class="form-control"-->
-<!--                                    id="email"-->
+<!--                                    id="username"-->
 <!--                                    name="email"-->
 <!--                                    placeholder="Enter your email or username"-->
 <!--                                    autofocus-->
@@ -202,7 +202,7 @@
                                 var password = document.getElementById('password').value;
 
                                 var xhr = new XMLHttpRequest();
-                                xhr.open('POST', '/api/v1/auth/authenticate', true);
+                                xhr.open('POST', '/login', true);
                                 xhr.setRequestHeader('Content-Type', 'application/json');
 
                                 xhr.onreadystatechange = function() {

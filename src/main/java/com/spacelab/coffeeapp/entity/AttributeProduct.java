@@ -17,10 +17,20 @@ public class AttributeProduct {
   @Column(name = "id", nullable = false)
   private Long id;
 
+  private String name;
+
+  @Enumerated(EnumType.STRING)
+  private TypeAttribute type;
+
   @ManyToOne
   @JoinColumn(name = "product_id")
   private Product product;
 
   @OneToMany(mappedBy = "attributeProduct")
   private List<AttributeValue> attributeValues = new ArrayList<>();
+
+  public enum TypeAttribute {
+    Basic,
+    Option
+  }
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface CityService {
 
     void saveCity(City city);
-    Optional<City> getCity(Long id);
+    City getCity(Long id);
     void updateCity(City city);
     void deleteCity(City city);
     void deleteCity(Long id);
@@ -18,4 +18,5 @@ public interface CityService {
     City getCityByName(String name);
     Page findCitiesByRequest(int page, int pageSize, String search);
 
+    long countCities();
 }

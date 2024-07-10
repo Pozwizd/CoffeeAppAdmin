@@ -38,6 +38,4 @@ public class CustomerMapper {
         return customerDto;
     }
 
-
-
 }

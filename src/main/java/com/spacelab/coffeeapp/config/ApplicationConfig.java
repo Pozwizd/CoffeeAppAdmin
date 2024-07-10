@@ -21,34 +21,35 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-  private final UserRepository repository;
+    private final UserRepository repository;
 
-  @Bean
-  public UserDetailsService userDetailsService() {
-    return username -> repository.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-  }
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> repository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 
-  @Bean // Ещё один Bean
-  public AuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(); // Создаём объект, который будет проверять подлинность пользователя
-    authProvider.setUserDetailsService(userDetailsService()); // Говорим ему использовать наш метод для поиска пользователей
-    authProvider.setPasswordEncoder(passwordEncoder()); // Говорим ему использовать наш метод для шифрования паролей
-    return authProvider; // Возвращаем настроенный объект
-  }
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 
-  @Bean // Ещё один Bean
-  public AuditorAware<Long> auditorAware() {
-    return new ApplicationAuditAware(); // Возвращаем объект, который поможет отслеживать изменения в приложении
-  }
+    @Bean
+    public AuditorAware<Long> auditorAware() {
+        return new ApplicationAuditAware();
+    }
 
-  @Bean // Ещё один Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-    return config.getAuthenticationManager(); // Возвращаем менеджер аутентификации, который помогает управлять процессом входа в систему
-  }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
-  @Bean // Ещё один Bean
-  public PasswordEncoder passwordEncoder() {
-    return NoOpPasswordEncoder.getInstance(); // Возвращаем объект, который шифрует пароли
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
+
 }

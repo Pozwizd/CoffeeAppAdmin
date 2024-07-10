@@ -22,8 +22,8 @@ public class CityServiceImp implements CityService  {
     }
 
     @Override
-    public Optional<City> getCity(Long id) {
-        return cityRepository.findById(id);
+    public City getCity(Long id) {
+        return cityRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -60,5 +60,10 @@ public class CityServiceImp implements CityService  {
     @Override
     public Page findCitiesByRequest(int page, int pageSize, String search) {
         return null;
+    }
+
+    @Override
+    public long countCities() {
+        return cityRepository.count();
     }
 }

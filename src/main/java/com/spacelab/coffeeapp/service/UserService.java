@@ -25,4 +25,6 @@ public interface UserService {
     User getUserByEmail(String name);
 
     Boolean existsByEmail(String email);
+
+    int countUsers();
 }

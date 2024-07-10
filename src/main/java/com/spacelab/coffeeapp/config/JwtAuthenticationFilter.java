@@ -1,6 +1,9 @@
 package com.spacelab.coffeeapp.config;
 
 
+
+import com.spacelab.coffeeapp.auth.AuthenticationService;
+import com.spacelab.coffeeapp.auth.RefreshTokenService;
 import com.spacelab.coffeeapp.token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
   private final JwtService jwtService;
   private final UserDetailsService userDetailsService;
   private final TokenRepository tokenRepository;
+  private final RefreshTokenService refreshTokenService;
 
   @Override
   protected void doFilterInternal(
@@ -54,25 +58,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
     userEmail = jwtService.extractUsername(jwt);
 
     if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail); // Загружаем детали пользователя
+      UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
       var isTokenValid = tokenRepository.findByToken(jwt)
-              .map(t -> !t.isExpired() && !t.isRevoked()) // Проверяем, что токен не истёк и не отозван
+              .map(t -> !t.isExpired() && !t.isRevoked())
               .orElse(false);
 
-      // Если токен действителен и пользователь из токена совпадает с загруженным пользователем
+
       if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
-                userDetails.getAuthorities() // Роли и права пользователя
+                userDetails.getAuthorities()
         );
         authToken.setDetails(
-                new WebAuthenticationDetailsSource().buildDetails(request) // Устанавливаем детали аутентификации
+                new WebAuthenticationDetailsSource().buildDetails(request)
         );
-        SecurityContextHolder.getContext().setAuthentication(authToken); // Устанавливаем аутентификацию в контексте безопасности
+        SecurityContextHolder.getContext().setAuthentication(authToken);
       }
     }
-    // Продолжаем обработку запроса
     filterChain.doFilter(request, response);
   }
 
@@ -87,15 +90,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
     }
     return null;
   }
-  private String extractJwtRefreshTokenFromCookie(HttpServletRequest request) {
-    Cookie[] cookies = request.getCookies();
-    if (cookies != null) {
-      for (Cookie cookie : cookies) {
-        if (cookie.getName().equals("accessToken")) {
-          return cookie.getValue();
-        }
-      }
-    }
-    return null;
-  }
+
 }

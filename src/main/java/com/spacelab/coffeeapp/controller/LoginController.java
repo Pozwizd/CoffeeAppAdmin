@@ -1,5 +1,6 @@
 package com.spacelab.coffeeapp.controller;
 
+import com.spacelab.coffeeapp.auditing.ApplicationAuditAware;
 import com.spacelab.coffeeapp.auth.AuthenticationRequest;
 import com.spacelab.coffeeapp.auth.AuthenticationResponse;
 import com.spacelab.coffeeapp.auth.AuthenticationService;
@@ -29,55 +30,37 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 @RequiredArgsConstructor
 public class LoginController {
-    private final AuthenticationManager authenticationManager;
     private final AuthenticationService service;
 
 
-
     @GetMapping("/login")
-    public ModelAndView login(Model model){
+    public ModelAndView login(Model model) {
         model.addAttribute("title", "Вход в систему");
-
+        // Проверка наличия аутентифицированного пользователя
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !authentication.getPrincipal().equals("anonymousUser")) {
+            return new ModelAndView("redirect:/");
+        }
         return new ModelAndView("/login");
     }
 
 
 
-
-//    @PostMapping("/login")
-//    public void authenticateUser(@RequestParam(name = "email") String email,
-//                                 @RequestParam(name = "password") String password,
-//                                 HttpServletRequest request) {
-//        Authentication authentication;
-//        try {authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
-//            SecurityContext context = SecurityContextHolder.getContext();
-//            context.setAuthentication(authentication);
-//            HttpSession session = request.getSession(true);
-//            session.setAttribute("SPRING_SECURITY_CONTEXT", context);
-//        } catch (BadCredentialsException e) {
-//            new ModelAndView("redirect:/login", HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
-
     @PostMapping("/login")
-    public void authenticateUser(@RequestParam(name = "email") String email,
-                                 @RequestParam(name = "password") String password,
-                                 HttpServletRequest request) {
-        Authentication authentication;
-        try {authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
-            SecurityContext context = SecurityContextHolder.getContext();
-            context.setAuthentication(authentication);
-            HttpSession session = request.getSession(true);
-            session.setAttribute("SPRING_SECURITY_CONTEXT", context);
-        } catch (BadCredentialsException e) {
-            new ModelAndView("redirect:/login", HttpStatus.BAD_REQUEST);
-        }
+    @ResponseBody
+    public ResponseEntity<?> authenticate(
+            @RequestBody AuthenticationRequest request, // Тело запроса содержит данные для аутентификации
+            HttpServletResponse response
+    ) {
+        AuthenticationResponse authResponse = service.authenticate(request);
+
+        Cookie accessCookie = new Cookie("accessToken", authResponse.getAccessToken());
+        accessCookie.setPath("/");
+        accessCookie.setHttpOnly(true);
+        response.addCookie(accessCookie);
+
+        return ResponseEntity.ok(authResponse);
     }
-
-
-
-
 
     @GetMapping("/logout")
     public ModelAndView performLogout(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
@@ -85,5 +68,4 @@ public class LoginController {
         logoutHandler.logout(request, response, authentication);
         return new ModelAndView("redirect:/");
     }
-
 }

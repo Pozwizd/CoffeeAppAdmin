@@ -11,17 +11,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
-@Service // Эта аннотация говорит Spring, что этот класс является сервисом и должен быть зарегистрирован в контейнере Spring
-@RequiredArgsConstructor // Эта аннотация автоматически создаёт конструктор с аргументами для всех финальных полей
-public class LogoutService implements LogoutHandler { // Этот класс реализует интерфейс LogoutHandler для обработки выхода из системы
+@Service
+@RequiredArgsConstructor
+public class LogoutService implements LogoutHandler {
 
-  private final TokenRepository tokenRepository; // Репозиторий для работы с токенами
+  private final TokenRepository tokenRepository;
 
   @Override
   public void logout(
-          HttpServletRequest request, // Запрос, который пришёл на сервер
-          HttpServletResponse response, // Ответ, который сервер отправит клиенту
-          Authentication authentication // Информация об аутентификации пользователя
+          HttpServletRequest request,
+          HttpServletResponse response,
+          Authentication authentication
   ) {
     final String authHeader = request.getHeader("Authorization");
     final String jwt;
@@ -32,15 +32,15 @@ public class LogoutService implements LogoutHandler { // Этот класс р�
     }
 
 
-    var storedToken = tokenRepository.findByToken(jwt) // Ищем токен в репозитории
-            .orElse(null); // Если токен не найден, возвращаем null
+    var storedToken = tokenRepository.findByToken(jwt)
+            .orElse(null);
 
     // Если токен найден в репозитории
     if (storedToken != null) {
-      storedToken.setExpired(true); // Помечаем токен как истёкший
-      storedToken.setRevoked(true); // Помечаем токен как отозванный
-      tokenRepository.save(storedToken); // Сохраняем обновлённый токен в репозитории
-      SecurityContextHolder.clearContext(); // Очищаем контекст безопасности
+      storedToken.setExpired(true);
+      storedToken.setRevoked(true);
+      tokenRepository.save(storedToken);
+      SecurityContextHolder.clearContext();
     }
   }
 
