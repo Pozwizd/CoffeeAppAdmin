@@ -1,5 +1,6 @@
 package com.spacelab.coffeeapp.entity;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,24 +14,23 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "orders")
-public class Orders {
+public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'TT'HH:mm")
     private LocalDateTime dateTimeOfCreate;
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'TT'HH:mm")
     private LocalDateTime dateTimeOfUpdate;
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'TT'HH:mm")
     private LocalDateTime dateTimeOfReady;
 
-    @OneToOne(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "delivery_id")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "order")
     private Delivery delivery;
 
-    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -40,7 +40,10 @@ public class Orders {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
+
+    private double totalAmount = 0;
 
     public enum OrderStatus {
         NEW,
@@ -54,5 +57,16 @@ public class Orders {
     public enum Payment {
         CASH,
         CARD
+    }
+
+    @PrePersist
+    @PreUpdate
+    @PostPersist
+    @PostConstruct
+    @PostLoad
+    public void updateTotalAmount() {
+        this.totalAmount = orderItems.stream()
+                .mapToDouble(OrderItem::getTotalAmount)
+                .sum();
     }
 }

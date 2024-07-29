@@ -4,7 +4,8 @@ package com.spacelab.coffeeapp.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 
 @Data
@@ -27,19 +28,22 @@ public class Delivery {
 
     private String building;
 
+    private String subDoor;
+
     private String apartment;
 
-    private LocalDateTime deliveryTime;
+    private LocalDate deliveryDate;
 
-    private LocalDateTime actualDeliveryTime;
+    private LocalTime deliveryTime;
 
     private Double changeAmount;
 
+    @Enumerated(EnumType.STRING)
     private DeliveryStatus status;
 
-    @OneToOne(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "order_id")
-    private Orders orders;
+    @OneToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     public enum DeliveryStatus {
         ORDER_ACCEPTED,

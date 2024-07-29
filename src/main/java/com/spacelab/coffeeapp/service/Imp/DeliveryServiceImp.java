@@ -47,7 +47,6 @@ public class DeliveryServiceImp implements DeliveryService {
             delivery1.setBuilding(delivery.getBuilding());
             delivery1.setApartment(delivery.getApartment());
             delivery1.setDeliveryTime(delivery.getDeliveryTime());
-            delivery1.setActualDeliveryTime(delivery.getActualDeliveryTime());
             delivery1.setChangeAmount(delivery.getChangeAmount());
             delivery1.setStatus(delivery.getStatus());
             delivery1.setCity(delivery.getCity());

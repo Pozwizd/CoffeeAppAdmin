@@ -1,4 +1,4 @@
-package com.spacelab.coffeeapp.controller.admin;
+package com.spacelab.coffeeapp.controller;
 
 
 import com.spacelab.coffeeapp.dto.UserDto;
@@ -27,7 +27,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @ModelAttribute
     public void addAttributes(Model model) {
@@ -42,7 +41,7 @@ public class UserController {
 
 
     @GetMapping({"/", ""})
-    public ModelAndView index( HttpSession session) {
+    public ModelAndView getUserPage( HttpSession session) {
         User user = new User();
         user.setName("test");
         user.setPassword("test");
@@ -57,11 +56,7 @@ public class UserController {
                                      @RequestParam(defaultValue = "5") Integer size,
                                      HttpSession session) {
 
-        if (search.isEmpty()) {
-            return userMapper.toDtoListPage(userService.findAllUsers(page, size));
-        } else {
-            return userMapper.toDtoListPage(userService.findUsersByRequest(page, size, search));
-        }
+        return userService.getUsersDtosByRequest(page, size, search);
     }
 
     @GetMapping("/{id}")
@@ -73,7 +68,7 @@ public class UserController {
     @PostMapping({"/create"})
     @ResponseBody
     public ResponseEntity<?> createEntity(@RequestBody UserDto user) {
-         userService.saveUser(userMapper.toEntity(user));
+         userService.saveUser(user);
         return ResponseEntity.ok().build();
     }
 

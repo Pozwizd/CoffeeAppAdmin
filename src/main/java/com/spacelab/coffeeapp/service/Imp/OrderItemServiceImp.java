@@ -72,6 +72,6 @@ public class OrderItemServiceImp implements OrderItemService {
     @Override
     public List<OrderItem> getOrderItemsByOrderId(Long orderId) {
         log.info("Get order items by order id: {}", orderId);
-        return orderItemRepository.findByOrdersId(orderId);
+        return orderItemRepository.findByOrderId(orderId);
     }
 }

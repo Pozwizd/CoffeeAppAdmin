@@ -16,7 +16,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class CategoryMapper {
-    private final CategoryService categoryService;
 
     public Category toEntity(CategoryDto categoryDto) {
         Category category = new Category();
@@ -36,6 +35,14 @@ public class CategoryMapper {
         return categoryDto;
     }
 
+    public List<CategoryDto> toDtoList(List<Category> categories) {
+        List<CategoryDto> categoryDtos = new ArrayList<>();
+        for (Category l : categories) {
+            categoryDtos.add(toDto(l));
+        }
+        return categoryDtos;
+    }
+
     public Page<CategoryDto> toDtoListPage(Page<Category> categories) {
         List<CategoryDto> categoryDtos = new ArrayList<>();
         for (Category l : categories.getContent()) {
@@ -51,6 +58,4 @@ public class CategoryMapper {
         }
         return locationDtoList;
     }
-
-
 }

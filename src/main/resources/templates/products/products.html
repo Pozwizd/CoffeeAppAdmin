@@ -110,7 +110,7 @@
             $(document).on('click', '#confirm-delete-btn', function () {
                 const id = $(this).data('id');
                 $.ajax({
-                    url: `/orders/${id}`,
+                    url: `/product/${id}`,
                     method: 'DELETE',
                     success: function () {
                         $('#deleteConfirmModal').modal('hide');
@@ -196,7 +196,6 @@
     </script>
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
-    <script th:replace="location/scripts::scripts"></script>
 </div>
 
 </body>

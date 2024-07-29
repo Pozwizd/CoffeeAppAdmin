@@ -1,6 +1,8 @@
 package com.spacelab.coffeeapp.service.Imp;
 
+import com.spacelab.coffeeapp.dto.CategoryDto;
 import com.spacelab.coffeeapp.entity.Category;
+import com.spacelab.coffeeapp.mapper.CategoryMapper;
 import com.spacelab.coffeeapp.repository.CategoryRepository;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.specification.CategorySpecification;
@@ -13,7 +15,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class CategoryServiceImp implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public int countCategory() {
@@ -34,15 +36,31 @@ public class CategoryServiceImp implements CategoryService {
     }
 
     @Override
+    public void createCategoryFromDto(CategoryDto categoryDto) {
+        saveCategory(categoryMapper.toEntity(categoryDto));
+        log.info("Save category from dto: {}", categoryDto);
+    }
+
+    @Override
     public Category  getCategory(Long id) {
         log.info("Get category by id: {}", id);
         return categoryRepository.findById(id).get();
     }
 
     @Override
+    public CategoryDto getCategoryDto(Long id) {
+        return categoryMapper.toDto(getCategory(id));
+    }
+
+    @Override
     public List<Category> getAllCategory() {
         log.info("Get all category");
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public List<CategoryDto> getAllCategoryDto() {
+        return categoryMapper.toDtoList(getAllCategory());
     }
 
     @Override
@@ -54,6 +72,12 @@ public class CategoryServiceImp implements CategoryService {
             return category1;
         }).orElseThrow(() -> new RuntimeException("Category not found"));
         log.info("Update category: {}", category);
+    }
+
+    @Override
+    public void updateCategoryFromDto(Long id, CategoryDto category) {
+        updateCategory(id, categoryMapper.toEntity(category));
+        log.info("Update category from dto: {}", category);
     }
 
     @Override
@@ -82,4 +106,15 @@ public class CategoryServiceImp implements CategoryService {
         log.info("Get categories by request: {}", search);
         return categoryRepository.findAll(specification, pageable);
     }
+
+    @Override
+    public Page<CategoryDto> getPagedAllCategoryDto(int page, int pageSize, String search) {
+        if (search.isEmpty()) {
+            return categoryMapper.toDtoListPage(findAllCategory(page, pageSize));
+        } else {
+            return categoryMapper.toDtoListPage(findCategoryByRequest(page, pageSize, search));
+        }
+    }
+
+
 }

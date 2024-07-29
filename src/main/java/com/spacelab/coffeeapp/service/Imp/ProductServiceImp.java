@@ -1,15 +1,19 @@
 package com.spacelab.coffeeapp.service.Imp;
 
 import com.spacelab.coffeeapp.dto.ProductDto;
+import com.spacelab.coffeeapp.dto.TopProduct;
 import com.spacelab.coffeeapp.entity.AttributeProduct;
 import com.spacelab.coffeeapp.entity.AttributeValue;
 import com.spacelab.coffeeapp.entity.Product;
+import com.spacelab.coffeeapp.mapper.ProductMapper;
+import com.spacelab.coffeeapp.repository.OrderItemRepository;
 import com.spacelab.coffeeapp.repository.ProductRepository;
 import com.spacelab.coffeeapp.service.AttributeProductService;
 import com.spacelab.coffeeapp.service.AttributeValueService;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
 import com.spacelab.coffeeapp.specification.ProductSpecification;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,9 +22,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +38,50 @@ public class ProductServiceImp implements ProductService {
     private final AttributeProductService attributeProductService;
     private final AttributeValueService attributeValueService;
     private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
+
+    private final OrderItemRepository orderItemRepository;
+
+    @Override
+    @Transactional
+    public Map<String, int[]> getTopProductsSalesLastMonths(int months) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(months);
+
+        List<Object[]> topProducts = orderItemRepository.findTop4Products(startDate, endDate);
+        Map<String, int[]> productSalesMap = new HashMap<>();
+
+        for (Object[] product : topProducts) {
+            Long productId = (Long) product[0];
+            String productName = "Product Name";
+            List<Object[]> salesData = orderItemRepository.countProductSalesByMonth(productId, startDate, endDate);
+
+            int[] salesCounts = new int[months]; // массив для хранения продаж по месяцам
+            for (Object[] sales : salesData) {
+                int year = (int) sales[0];
+                int month = (int) sales[1];
+                int count = ((Number) sales[2]).intValue();
+
+                // Рассчитать индекс для массива
+                YearMonth currentMonth = YearMonth.now();
+                YearMonth salesMonth = YearMonth.of(year, month);
+
+                // Рассчитать количество месяцев между текущим месяцем и месяцем продажи
+                long monthsBetween = ChronoUnit.MONTHS.between(salesMonth, currentMonth);
+                // Индекс для массива будет обратным
+                int index = (int) (months - monthsBetween - 1);
+
+                // Заполнить массив
+                if (index >= 0 && index < months) {
+                    salesCounts[index] = count;
+                }
+            }
+
+            productSalesMap.put(productName, salesCounts);
+        }
+
+        return productSalesMap;
+    }
 
     @Override
     public void saveProduct(Product product) {
@@ -46,9 +96,24 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
+    public ProductDto getProductDto(Long id) {
+        return productMapper.toDto(getProduct(id));
+    }
+
+    @Override
     public List<Product> getAllProducts() {
         log.info("Fetching all products");
         return productRepository.findAll();
+    }
+
+    @Override
+    public List<ProductDto> getAllProductDto() {
+        return List.of();
+    }
+
+    @Override
+    public Product createProduct(Product product) {
+        return null;
     }
 
     @Override
@@ -75,7 +140,6 @@ public class ProductServiceImp implements ProductService {
         product.setStatus(Product.Status.valueOf(productDto.getStatus()));
         product.setCategory(categoryService.getCategory(Long.valueOf(productDto.getCategory())));
 
-        // Сначала сохраняем продукт, чтобы получить его ID
         saveProduct(product);
         product.setId(productRepository.findMaxId());
 
@@ -270,7 +334,44 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
+    public Page<ProductDto> findProductsDtoByRequest(int page, int pageSize, String search) {
+        if (search.isEmpty()) {
+            return productMapper.toDtoListPage(findAllProducts(page, pageSize));
+        } else {
+            return productMapper.toDtoListPage(findProductsByRequest(page, pageSize, search));
+        }
+    }
+
+    @Override
     public long countProducts() {
         return productRepository.count();
     }
+
+    @Override
+    public List<Product> getProductsByCategory(Long categoryId) {
+        return productRepository.findProductByCategory_Id(categoryId);
+    }
+
+    @Override
+    public List<ProductDto> getProductsDtoByCategory(Long categoryId) {
+        return productMapper.toDtoList(getProductsByCategory(categoryId));
+    }
+
+    @Override
+    public List<TopProduct> getTop3Products() {
+        Pageable pageable = PageRequest.of(0, 3);
+        List<Object[]> results = productRepository.findTop3Products(pageable);
+
+        double totalQuantity = results.stream()
+                .mapToDouble(result -> ((Number) result[1]).doubleValue())
+                .sum();
+
+        return results.stream()
+                .map(result -> new TopProduct(
+                        (String) result[0],
+                        (((Number) result[1]).doubleValue() / totalQuantity) * 100
+                ))
+                .collect(Collectors.toList());
+    }
+
 }

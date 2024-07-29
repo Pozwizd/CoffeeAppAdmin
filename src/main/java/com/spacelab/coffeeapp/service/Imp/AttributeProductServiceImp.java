@@ -1,6 +1,8 @@
 package com.spacelab.coffeeapp.service.Imp;
 
+import com.spacelab.coffeeapp.dto.AttributeProductDto;
 import com.spacelab.coffeeapp.entity.AttributeProduct;
+import com.spacelab.coffeeapp.mapper.AttributeProductMapper;
 import com.spacelab.coffeeapp.repository.AttributeProductRepository;
 import com.spacelab.coffeeapp.service.AttributeProductService;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 public class AttributeProductServiceImp implements AttributeProductService {
 
     private final AttributeProductRepository attributeProductRepository;
+    private final AttributeProductMapper attributeProductMapper;
 
 
     @Override
@@ -29,11 +32,23 @@ public class AttributeProductServiceImp implements AttributeProductService {
         return attributeProductRepository.findById(id).get();
     }
 
+
     @Override
     public List<AttributeProduct> getAllAttributeProducts() {
         log.info("Fetching all attributeProducts");
         return attributeProductRepository.findAll();
     }
+
+    @Override
+    public List<AttributeProduct> findByProduct(Long productId) {
+        return attributeProductRepository.findAttributeProductByProduct_Id(productId);
+    }
+
+    @Override
+    public List<AttributeProductDto> getAllAttributesDtoByProduct(String productId) {
+        return attributeProductMapper.toDtoList(findByProduct(Long.valueOf(productId)));
+    }
+
 
     @Override
     public void updateAttributeProduct(Long id, AttributeProduct attributeProduct) {

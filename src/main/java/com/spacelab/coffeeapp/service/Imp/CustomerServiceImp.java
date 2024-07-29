@@ -85,4 +85,26 @@ public class CustomerServiceImp implements CustomerService {
     public long countCustomers() {
         return customerRepository.count();
     }
+
+    @Override
+    public Integer countAllCustomers() {
+        return customerRepository.countAllCustomers();
+    }
+
+    @Override
+    public Integer countTodayNewCustomers() {
+        return customerRepository.countTodayNewCustomers();
+    }
+
+    @Override
+    public Double calculateActiveCustomersLastMonth() {
+//        return customerRepository.calculateActiveCustomersLastMonth();
+        return 0.0;
+    }
+
+    @Override
+    public Double calculateChangesLastWeek() {
+//        return customerRepository.calculateChangesLastWeek();
+        return 0.0;
+    }
 }

@@ -16,9 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AttributeProductDto implements Serializable {
 
-
     Long id;
-
     @NotEmpty(message = "Название не может быть пустым")
     String name;
     String type;

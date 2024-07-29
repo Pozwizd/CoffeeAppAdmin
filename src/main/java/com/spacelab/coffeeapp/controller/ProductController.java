@@ -1,9 +1,12 @@
-package com.spacelab.coffeeapp.controller.admin;
+package com.spacelab.coffeeapp.controller;
 
+import com.spacelab.coffeeapp.dto.AttributeProductDto;
 import com.spacelab.coffeeapp.dto.ProductDto;
+import com.spacelab.coffeeapp.entity.AttributeProduct;
 import com.spacelab.coffeeapp.entity.Product;
 import com.spacelab.coffeeapp.mapper.CategoryMapper;
 import com.spacelab.coffeeapp.mapper.ProductMapper;
+import com.spacelab.coffeeapp.service.AttributeProductService;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
 import jakarta.servlet.http.HttpSession;
@@ -18,6 +21,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +42,7 @@ public class ProductController {
     }
 
     @GetMapping({"/", ""})
-    public ModelAndView index(HttpSession session) {
+    public ModelAndView getProductPage(HttpSession session) {
         session.removeAttribute("product");
         session.removeAttribute("attributeProduct");
         return new ModelAndView("products/products");
@@ -46,15 +50,20 @@ public class ProductController {
 
     @GetMapping("/getAll")
     @ResponseBody
-    public Page<ProductDto> getEntities(@RequestParam(defaultValue = "0") int page,
+    public Page<ProductDto> getProductsDtoWithPagination(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "") String search,
                                         @RequestParam(defaultValue = "5") Integer size) {
-        if (search.isEmpty()) {
-            return productMapper.toDtoListPage(productService.findAllProducts(page, size));
-        } else {
-            return productMapper.toDtoListPage(productService.findProductsByRequest(page, size, search));
-        }
+        return productService.findProductsDtoByRequest(page, size, search);
     }
+
+    @GetMapping("/getByCategory/{categoryId}")
+    @ResponseBody
+    public List<ProductDto> getProductsByCategory( @PathVariable String categoryId) {
+        List<ProductDto> products = productMapper.toDtoList(productService.getProductsByCategory(Long.valueOf(categoryId)));
+        return products;
+    }
+
+
 
     @GetMapping("/{id}")
     public ModelAndView getEntity(@PathVariable String id, HttpSession session,  Model model) {
@@ -73,7 +82,7 @@ public class ProductController {
                 model.addAttribute("productId", "create");
                 session.setAttribute("product", productDto);
             } else {
-                ProductDto productDto = productMapper.toDto(productService.getProduct(Long.valueOf(id)));
+                ProductDto productDto = productService.getProductDto(Long.valueOf(id));
                 session.setAttribute("product", productDto );
                 model.addAttribute("productId", productDto.getId());
                 model.addAttribute("product",

@@ -1,10 +1,10 @@
 package com.spacelab.coffeeapp.dto;
 
-import com.spacelab.coffeeapp.entity.Customer;
-import com.spacelab.coffeeapp.entity.Delivery;
-import com.spacelab.coffeeapp.entity.OrderItem;
-import com.spacelab.coffeeapp.entity.Orders;
-import lombok.*;
+import com.spacelab.coffeeapp.entity.Order;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO for {@link Orders}
+ * DTO for {@link Order}
  */
 @Data
 @Builder
@@ -27,9 +27,11 @@ public class OrdersDto implements Serializable {
     @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
     LocalDateTime dateTimeOfReady;
 
-    DeliveryDto delivery;
+    DeliveryDto deliveryDto;
     List<OrderItemDto> orderItemsDto;
 
-    Orders.Payment payment;
-    Orders.OrderStatus status;
+    Order.Payment payment;
+    Order.OrderStatus status;
+
+    double totalAmount = 0;
 }

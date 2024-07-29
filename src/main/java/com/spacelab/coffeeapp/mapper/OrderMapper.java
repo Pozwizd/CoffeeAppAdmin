@@ -1,11 +1,13 @@
 package com.spacelab.coffeeapp.mapper;
 
 import com.spacelab.coffeeapp.dto.DeliveryDto;
+import com.spacelab.coffeeapp.dto.OrderItemAttributeDto;
 import com.spacelab.coffeeapp.dto.OrderItemDto;
 import com.spacelab.coffeeapp.dto.OrdersDto;
 import com.spacelab.coffeeapp.entity.Delivery;
 import com.spacelab.coffeeapp.entity.OrderItem;
-import com.spacelab.coffeeapp.entity.Orders;
+import com.spacelab.coffeeapp.entity.OrderItemAttribute;
+import com.spacelab.coffeeapp.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -15,38 +17,58 @@ import java.util.List;
 @Service
 public class OrderMapper {
 
-    public OrdersDto toDto(Orders orders) {
+    public OrdersDto toDto(Order order) {
         OrdersDto ordersDto = new OrdersDto();
-        ordersDto.setId(orders.getId());
-        ordersDto.setDateTimeOfCreate(orders.getDateTimeOfCreate());
-        ordersDto.setDateTimeOfUpdate(orders.getDateTimeOfUpdate());
-        ordersDto.setDateTimeOfReady(orders.getDateTimeOfReady());
-        ordersDto.setStatus(orders.getStatus());
-        ordersDto.setPayment(orders.getPayment());
-        Delivery delivery = orders.getDelivery();
+        ordersDto.setId(order.getId());
+        ordersDto.setDateTimeOfCreate(order.getDateTimeOfCreate());
+        ordersDto.setDateTimeOfUpdate(order.getDateTimeOfUpdate());
+        ordersDto.setDateTimeOfReady(order.getDateTimeOfReady());
+        ordersDto.setStatus(order.getStatus());
+        ordersDto.setPayment(order.getPayment());
+        ordersDto.setTotalAmount(order.getTotalAmount());
+        Delivery delivery = order.getDelivery();
         if (delivery != null) {
             DeliveryDto deliveryDto = new DeliveryDto();
             deliveryDto.setId(delivery.getId());
             deliveryDto.setName(delivery.getName());
             deliveryDto.setPhoneNumber(delivery.getPhoneNumber());
+            deliveryDto.setCityId(delivery.getCity().getId());
             deliveryDto.setStreet(delivery.getStreet());
             deliveryDto.setBuilding(delivery.getBuilding());
+            deliveryDto.setSubDoor(delivery.getSubDoor());
             deliveryDto.setApartment(delivery.getApartment());
+            deliveryDto.setDeliveryDate(delivery.getDeliveryDate());
             deliveryDto.setDeliveryTime(delivery.getDeliveryTime());
-            deliveryDto.setActualDeliveryTime(delivery.getActualDeliveryTime());
             deliveryDto.setChangeAmount(delivery.getChangeAmount());
             deliveryDto.setStatus(delivery.getStatus());
-            ordersDto.setDelivery(deliveryDto);
+            ordersDto.setDeliveryDto(deliveryDto);
         }
-        if (orders.getOrderItems() != null) {
+        if (order.getOrderItems() != null) {
             List<OrderItemDto> orderItemsDto = new ArrayList<>();
-            for (OrderItem orderItem : orders.getOrderItems()) {
+            for (OrderItem orderItem : order.getOrderItems()) {
                 OrderItemDto orderItemDto = new OrderItemDto();
                 orderItemDto.setId(orderItem.getId());
                 orderItemDto.setQuantity(orderItem.getQuantity());
                 orderItemDto.setProductName(orderItem.getProduct().getName());
                 orderItemDto.setProductId(orderItem.getProduct().getId());
+                orderItemDto.setCategoryId(orderItem.getProduct().getCategory().getId());
                 orderItemsDto.add(orderItemDto);
+                if (orderItem.getOrderItemAttributes() != null) {
+                    List<OrderItemAttributeDto> orderItemAttributeDtos = new ArrayList<>();
+                    for (OrderItemAttribute orderItemAttribute : orderItem.getOrderItemAttributes()) {
+                        OrderItemAttributeDto orderItemAttributeDto = new OrderItemAttributeDto();
+                        orderItemAttributeDto.setId(orderItemAttribute.getId());
+                        orderItemAttributeDto.setOrderItemId(orderItemAttribute.getOrderItem().getId());
+
+                        orderItemAttributeDto.setProductAttributeId(orderItemAttribute.getAttributeProduct().getId());
+
+                        orderItemAttributeDto.setAttributeValueId(orderItemAttribute.getAttributeValue().getId());
+                        orderItemAttributeDtos.add(orderItemAttributeDto);
+                    }
+                    if (!orderItemAttributeDtos.isEmpty()) {
+                        orderItemDto.setAttributes(orderItemAttributeDtos);
+                    }
+                }
             }
             ordersDto.setOrderItemsDto(orderItemsDto);
         }
@@ -54,8 +76,7 @@ public class OrderMapper {
     }
 
 
-    public Page<OrdersDto> toDto(Page<Orders> orders) {
-        Page<OrdersDto> ordersDto = orders.map(this::toDto);
-        return ordersDto;
+    public Page<OrdersDto> toDto(Page<Order> orders) {
+        return orders.map(this::toDto);
     }
 }

@@ -69,14 +69,16 @@
     </div>
     <script>
         $(document).ready(function () {
-            loadEntities(0, $('#pageSize').val());
+            let pageSize = parseInt($('#pageSize').val());
+            loadEntities(0, pageSize);
             let currentPage = 0;
             $('#pageSize').on('change', function () {
-                loadEntities(currentPage, '', $('#pageSize').val());
+                pageSize = parseInt($(this).val());
+                loadEntities(currentPage, pageSize);
             });
             function loadEntities(page, pageSize) {
                 $.ajax({
-                    url: '/orders/getAll',
+                    url: '/order/getAll',
                     method: 'GET',
                     data: {
                         page: page,
@@ -94,27 +96,37 @@
                 });
             }
 
-            function renderEntitiesTable(orders) {
+            function renderEntitiesTable(order) {
                 const tableBody = $('#table-body');
                 tableBody.empty();
-                console.log(orders);
 
-                orders.forEach(order => {
+                order.forEach(order => {
+                    // Функция для преобразования массива в строку формата ISO 8601 и форматирования даты и времени
+                    function formatDateTime(dateTimeArray) {
+                        const [year, month, day, hour, minute, second] = dateTimeArray;
+                        const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+                        return new Date(dateTimeString).toLocaleString('ru-RU', {
+                            year: 'numeric',
+                            month: 'numeric',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            second: 'numeric'
+                        });
+                    }
 
-                    let dateTimeOfCreate = moment(order.dateTimeOfCreate).format("YYYY-MM-DDTHH:mm");
-                    console.log(dateTimeOfCreate);
-                    let dateTimeOfUpdate = new Date(order.dateTimeOfUpdate).toLocaleDateString('ru-RU');
-                    console.log(dateTimeOfUpdate);
-                    let dateTimeOfReady = new Date(order.dateTimeOfReady).toLocaleDateString('ru-RU');
-                    console.log(dateTimeOfReady);
+                    let dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
+                    let dateTimeOfUpdate = formatDateTime(order.dateTimeOfUpdate);
+                    let dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
+
                     const row = `<tr>
                         <td class="text-center">${order.id}</td>
-                        <td class="text-center">${order.dateTimeOfCreate}</td>
-                        <td class="text-center">${order.dateTimeOfUpdate}</td>
-                        <td class="text-center">${order.dateTimeOfReady}</td>
+                        <td class="text-center">${dateTimeOfCreate}</td>
+                        <td class="text-center">${dateTimeOfUpdate}</td>
+                        <td class="text-center">${dateTimeOfReady}</td>
                         <td class="text-center">${order.status}</td>
                         <td class="text-center">
-                            <a class="btn btn-sm btn-primary edit-entity-btn" methods="GET" href="/orders/${order.id}">
+                            <a class="btn btn-sm btn-primary edit-entity-btn" methods="GET" href="/order/${order.id}">
                                 <i class="ti ti-edit"></i>
                             </a>
                             <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${order.id}" data-bs-target="#deleteConfirmModal">
@@ -150,14 +162,26 @@
                 }
             }
 
+            $(document).on('click', '.page-link', function (e) {
+                e.preventDefault();
+                currentPage = parseInt($(this).data('page'));
+                loadEntities(currentPage, pageSize);
+            });
+
+            $(document).on('click', '.delete-entity-btn', function () {
+                const id = $(this).data('id');
+                $('#confirm-delete-btn').data('id', id);
+            });
+
+            // Навешиваем на кнопку "Удалить" обработчик события "click"
             $(document).on('click', '#confirm-delete-btn', function () {
                 const id = $(this).data('id');
                 $.ajax({
-                    url: `/product/${id}`,
+                    url: `/order/${id}`,
                     method: 'DELETE',
                     success: function () {
                         $('#deleteConfirmModal').modal('hide');
-                        loadEntities(currentPage, $('#search').val(), pageSize);
+                        loadEntities(currentPage, pageSize);
                         $('#deleteConfirmModal').removeClass('show');
                         $('.modal-backdrop').remove();
                     },
@@ -172,7 +196,6 @@
 
 
     </script>
-
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 </div>
 </body>

@@ -1,12 +1,16 @@
 package com.spacelab.coffeeapp.mapper;
 
 import com.spacelab.coffeeapp.dto.CustomerDto;
-import com.spacelab.coffeeapp.dto.LocationDto;
 import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.CustomerStatus;
 import com.spacelab.coffeeapp.entity.Language;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -38,4 +42,19 @@ public class CustomerMapper {
         return customerDto;
     }
 
+    public Page<CustomerDto> toDtoListPage(Page<Customer> customers) {
+        List<CustomerDto> customerDtos = new ArrayList<>();
+        for (Customer l : customers.getContent()) {
+            customerDtos.add(toDto(l));
+        }
+        return new PageImpl<>(customerDtos, customers.getPageable(), customers.getTotalElements());
+    }
+
+    public List<Customer> toEntityListPage(List<CustomerDto> customerDtos) {
+        List<Customer> locationDtoList = new ArrayList<>();
+        for (CustomerDto l : customerDtos) {
+            locationDtoList.add(toEntity(l));
+        }
+        return locationDtoList;
+    }
 }

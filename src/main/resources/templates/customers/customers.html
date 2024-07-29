@@ -340,7 +340,7 @@
                     tableBody.append('<tr><td colspan="9" class="text-center">Нет данных</td></tr>');
                 } else {
                     customers.forEach(customer => {
-                        let dateOfBirth = new Date(customer.dateOfBirth).toLocaleDateString('ru-RU'); ;
+                        let dateOfBirth = new Date(customer.dateOfBirth).toLocaleDateString('ru-RU');
 
                         const row = `<tr>
                         <td class="text-center">${customer.id}</td>

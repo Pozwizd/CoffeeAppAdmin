@@ -5,9 +5,344 @@
 <body>
 <div layout:fragment="content">
     <div class="container">
-        Статистика
-    </div>
 
+        <div class="container-fluid p-4">
+            <!-- Cards -->
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-2">Количество заказов</h5>
+                                <i class="ti ti-basket"></i>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted" id="total-orders">21,324</h6>
+                            <p class="card-text" id="today-orders">+2,031</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-2">Общая сумма продаж</h5>
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted" id="total-sales">$221,324.50</h6>
+                            <p class="card-text" id="today-sales">+$2,201</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-2">Всего пользователей</h5>
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted" id="total-customers">16,703</h6>
+                            <p class="card-text" id="today-customers">+3,392</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-2">Активных пользователей</h5>
+                                <i class="bi bi-person-check"></i>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted" id="active-users">12.8%</h6>
+                            <p class="card-text" id="changes-last-week">-1.22%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <script>
+                $(document).ready(function() {
+                    function fetchData() {
+                        $.ajax({
+                            url: '/orders',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#total-orders').text(data);
+                            },
+                            error: function() {
+                                $('#total-orders').text('0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/orders/today',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#today-orders').text(data);
+                            },
+                            error: function() {
+                                $('#today-orders').text('0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/sales/total',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#total-sales').text('$' + data);
+                            },
+                            error: function() {
+                                $('#total-sales').text('$0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/sales/today',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#today-sales').text('+$' + data);
+                            },
+                            error: function() {
+                                $('#today-sales').text('+$0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/customers',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#total-customers').text(data);
+                            },
+                            error: function() {
+                                $('#total-customers').text('0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/customers/today',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#today-customers').text('+' + data);
+                            },
+                            error: function() {
+                                $('#today-customers').text('+0');
+                            }
+                        });
+                        $.ajax({
+                            url: '/customers/active/last-month',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#active-users').text(data + '%');
+                            },
+                            error: function() {
+                                $('#active-users').text('0%');
+                            }
+
+                        });
+                        $.ajax({
+                            url: '/customers/changes/last-week',
+                            method: 'GET',
+                            success: function(data) {
+                                $('#changes-last-week').text((data > 0 ? '+' : '') + data + '%');
+                            },
+                            error: function() {
+                                $('#changes-last-week').text('0%');
+                            }
+                        });
+                    }
+
+                    fetchData();
+
+                    setInterval(fetchData, 30000);
+                });
+            </script>
+
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <h5 class="card-title">График продаж</h5>
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Топ 3 продукта</h5>
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                $(document).ready(function() {
+                    $.ajax({
+                        url: '/sales/chart',
+                        type: 'GET',
+                        success: function (data) {
+                            console.log(data);
+                        },
+                        error: function (error) {
+                            console.error('Error fetching sales chart:', error);
+
+                        }
+                    });
+                });
+
+                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                const salesChart = new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                        datasets: [
+                            {
+                                label: 'Американо',
+                                data: [12, 19, 3, 5, 2, 3],
+                                borderColor: 'yellow',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Эспрессо',
+                                data: [2, 3, 20, 5, 1, 4],
+                                borderColor: 'green',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Капучино',
+                                data: [3, 10, 13, 15, 22, 30],
+                                borderColor: 'cyan',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Латте',
+                                data: [5, 2, 3, 10, 5, 3],
+                                borderColor: 'white',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                $(document).ready(function() {
+                    $.ajax({
+                        url: '/products/top',
+                        type: 'GET',
+                        success: function(data) {
+                            const labels = data.map(product => product.name);
+                            const percentages = data.map(product => product.percentage);
+
+                            const backgroundColors = ['yellow', 'green', 'cyan'];
+
+                            const ctx = document.getElementById('topProductsChart').getContext('2d');
+                            const topProductsChart = new Chart(ctx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        data: percentages,
+                                        backgroundColor: backgroundColors,
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    let label = context.label || '';
+                                                    if (label) {
+                                                        label += ': ';
+                                                    }
+                                                    if (context.raw !== null) {
+                                                        label += Math.round(context.raw * 100) / 100 + '%';
+                                                    }
+                                                    return label;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        },
+                        error: function(error) {
+                            console.error('Error fetching top products:', error);
+                        }
+                    });
+                });
+            </script>
+        </div>
+
+
+
+    </div>
+    <!-- Recent Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card p-3">
+                <div class="card-body">
+                    <h5 class="card-title">Последние заказы</h5>
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Дата заказа</th>
+                            <th scope="col">Номер телефона</th>
+                            <th scope="col">Локация</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Готов</td>
+                            <td>Jerry Mattedi</td>
+                            <td>19 May, 2021 : 10:10 AM</td>
+                            <td>251-661-5362</td>
+                            <td>New York</td>
+                        </tr>
+                        <tr>
+                            <td>Отменен</td>
+                            <td>Ellianora Vasilov</td>
+                            <td>18 May, 2021 : 3:12 PM</td>
+                            <td>171-534-1262</td>
+                            <td>Ontario</td>
+                        </tr>
+                        <tr>
+                            <td>В процессе</td>
+                            <td>Alvis Daen</td>
+                            <td>17 May, 2021 : 2:15 PM</td>
+                            <td>974-661-5110</td>
+                            <td>Milan</td>
+                        </tr>
+                        <tr>
+                            <td>Доставляется</td>
+                            <td>Lissa Shipsey</td>
+                            <td>23 Apr, 2021 : 1:15 PM</td>
+                            <td>541-661-3042</td>
+                            <td>San Francisco</td>
+                        </tr>
+                        <tr>
+                            <td>Новый</td>
+                            <td>Jerry Mattedi</td>
+                            <td>19 May, 2021 : 10:10 AM</td>
+                            <td>251-661-5362</td>
+                            <td>New York</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

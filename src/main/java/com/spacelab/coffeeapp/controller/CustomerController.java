@@ -1,25 +1,20 @@
-package com.spacelab.coffeeapp.controller.admin;
+package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.dto.CustomerDto;
-import com.spacelab.coffeeapp.dto.LocationDto;
 import com.spacelab.coffeeapp.entity.*;
 import com.spacelab.coffeeapp.mapper.CustomerMapper;
-import com.spacelab.coffeeapp.mapper.LocationMapper;
 import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.CustomerService;
 import com.spacelab.coffeeapp.service.LocationService;
-import com.spacelab.coffeeapp.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -27,8 +22,6 @@ import java.util.List;
 @RequestMapping("/customer")
 public class CustomerController {
 
-
-    private final LocationService locationService;
     private final CityService cityService;
     private final CustomerService customerService;
     private final CustomerMapper customerMapper;
@@ -67,18 +60,10 @@ public class CustomerController {
                                          @RequestParam(defaultValue = "5") Integer size) {
         if (search.isEmpty()) {
             Page<Customer> allCustomer = customerService.findAllCustomer(page, size);
-            List<CustomerDto> customerDtos = new ArrayList<>();
-            for (Customer customer : allCustomer.getContent()) {
-                customerDtos.add(customerMapper.toDto(customer));
-            }
-            return new PageImpl<>(customerDtos, allCustomer.getPageable(), allCustomer.getTotalElements());
+            return customerMapper.toDtoListPage(allCustomer);
         } else {
             Page<Customer> allCustomer = customerService.findCustomerByRequest(page, size, search);
-            List<CustomerDto> customerDtos = new ArrayList<>();
-            for (Customer customer : allCustomer.getContent()) {
-                customerDtos.add(customerMapper.toDto(customer));
-            }
-            return new PageImpl<>(customerDtos, allCustomer.getPageable(), allCustomer.getTotalElements());
+            return customerMapper.toDtoListPage(allCustomer);
         }
     }
 

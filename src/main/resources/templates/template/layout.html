@@ -66,7 +66,7 @@
             <ul class="menu-inner py-1">
                 <!-- Page -->
                 <li th:classappend="${pageActive == 'statistic' ? 'active' : ''}" class="menu-item" >
-                    <a th:href="@{/statistic}" class="menu-link active">
+                    <a th:href="@{/}" class="menu-link active">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Статистика</div>
                     </a>
@@ -89,8 +89,8 @@
                         <div>Продукты</div>
                     </a>
                 </li>
-                <li th:classappend="${pageActive == 'orders' ? 'active' : ''}" class="menu-item">
-                    <a th:href="@{/orders}" class="menu-link">
+                <li th:classappend="${pageActive == 'order' ? 'active' : ''}" class="menu-item">
+                    <a th:href="@{/order}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-app-window"></i>
                         <div>Заказы</div>
                     </a>

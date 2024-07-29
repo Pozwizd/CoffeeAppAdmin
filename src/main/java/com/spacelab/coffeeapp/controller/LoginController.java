@@ -49,7 +49,7 @@ public class LoginController {
     @PostMapping("/login")
     @ResponseBody
     public ResponseEntity<?> authenticate(
-            @RequestBody AuthenticationRequest request, // Тело запроса содержит данные для аутентификации
+            @RequestBody AuthenticationRequest request, 
             HttpServletResponse response
     ) {
         AuthenticationResponse authResponse = service.authenticate(request);

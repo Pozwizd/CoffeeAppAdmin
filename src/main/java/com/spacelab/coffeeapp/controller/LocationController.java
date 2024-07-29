@@ -1,29 +1,20 @@
-package com.spacelab.coffeeapp.controller.admin;
+package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.entity.City;
-import com.spacelab.coffeeapp.entity.Location;
 import com.spacelab.coffeeapp.dto.LocationDto;
-import com.spacelab.coffeeapp.entity.Role;
-import com.spacelab.coffeeapp.entity.User;
 import com.spacelab.coffeeapp.mapper.LocationMapper;
 import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.LocationService;
-import com.spacelab.coffeeapp.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @RequestMapping("/location")
@@ -33,7 +24,6 @@ public class LocationController {
 
     private final LocationService locationService;
     private final CityService cityService;
-    private final UserService userService;
     private final LocationMapper locationMapper;
 
     @ModelAttribute

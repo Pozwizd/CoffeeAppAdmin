@@ -4,6 +4,7 @@ package com.spacelab.coffeeapp.service.Imp;
 import com.spacelab.coffeeapp.dto.UserDto;
 import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
+import com.spacelab.coffeeapp.mapper.UserMapper;
 import com.spacelab.coffeeapp.repository.UserRepository;
 import com.spacelab.coffeeapp.service.UserService;
 import com.spacelab.coffeeapp.specification.UserSpecification;
@@ -14,30 +15,34 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class UserServiceImp implements UserService, UserDetailsService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private static final Logger logger = LogManager.getLogger(UserServiceImp.class);
     private final PasswordEncoder passwordEncoder;
 
 
 
     @Override
-    public User saveUser(User user) {
+    public void saveUser(User user) {
         logger.info("Save user: {}", user);
         userRepository.save(user);
-        return user;
+
+    }
+    @Override
+    public void saveUser(UserDto user) {
+        logger.info("Save user: {}", user);
+        saveUser(userMapper.toEntity(user));
     }
 
     @Override
@@ -73,6 +78,18 @@ public class UserServiceImp implements UserService, UserDetailsService {
     public void deleteUser(Long id) {
         logger.info("Delete user by id: {}", id);
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<UserDto> getUsersDtosByRequest(int page,
+                                               int pageSize,
+                                               String search) {
+
+        if (search.isEmpty()) {
+            return userMapper.toDtoListPage(findAllUsers(page, pageSize));
+        } else {
+            return userMapper.toDtoListPage(findUsersByRequest(page, pageSize, search));
+        }
     }
 
     @Override

@@ -7,23 +7,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "attribute_value")
-public class AttributeValue {
+@Table(name = "order_item_attribute")
+public class OrderItemAttribute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    private String name;
-
-    private String description;
-
-    private Double price;
-
-    private Double priceWithDiscount;
-    
     @ManyToOne
-    @JoinColumn(name = "attribute_product_id")
+    @JoinColumn(name = "order_item_id")
+    private OrderItem orderItem;
+
+    @ManyToOne
+    @JoinColumn(name = "product_attribute_id")
     private AttributeProduct attributeProduct;
 
+    @ManyToOne
+    @JoinColumn(name = "attribute_value_id")
+    private AttributeValue attributeValue;
 }

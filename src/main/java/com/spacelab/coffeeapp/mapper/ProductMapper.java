@@ -20,7 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ProductMapper {
 
-    private final ProductService productService;
     private final CategoryService categoryService;
 
     public Page<ProductDto> toDtoListPage(Page<Product> productPage) {
@@ -30,14 +29,16 @@ public class ProductMapper {
         }
         return new PageImpl<>(productDtos, productPage.getPageable(), productPage.getTotalElements());
     }
-//
-//    public List<Location> toEntityListPage(List<LocationDto> locationList) {
-//        List<Location> locationDtoList = new ArrayList<>();
-//        for (LocationDto l : locationList) {
-//            locationDtoList.add(toEntity(l));
-//        }
-//        return locationDtoList;
-//    }
+
+
+    public List<ProductDto> toDtoList(List<Product> products) {
+        List<ProductDto> productDtos = new ArrayList<>();
+        for (Product l : products) {
+            productDtos.add(toDto(l));
+        }
+        return productDtos;
+    }
+
 
     public ProductDto toDto(Product product) {
         ProductDto productDto = new ProductDto();

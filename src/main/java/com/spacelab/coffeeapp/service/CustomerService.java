@@ -21,4 +21,12 @@ public interface CustomerService {
     Page<Customer> findCustomerByRequest(int page, int pageSize, String search);
 
     long countCustomers();
+
+    Integer countAllCustomers();
+
+    Integer countTodayNewCustomers();
+
+    Double calculateActiveCustomersLastMonth();
+
+    Double calculateChangesLastWeek();
 }

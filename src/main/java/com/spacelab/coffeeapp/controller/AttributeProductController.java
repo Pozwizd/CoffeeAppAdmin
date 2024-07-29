@@ -1,19 +1,20 @@
-package com.spacelab.coffeeapp.controller.admin;
+package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.dto.AttributeProductDto;
 import com.spacelab.coffeeapp.dto.AttributeValueDto;
 import com.spacelab.coffeeapp.dto.ProductDto;
-import com.spacelab.coffeeapp.dto.UserDto;
 import com.spacelab.coffeeapp.entity.AttributeProduct;
+import com.spacelab.coffeeapp.entity.AttributeValue;
 import com.spacelab.coffeeapp.entity.Product;
 import com.spacelab.coffeeapp.mapper.CategoryMapper;
 import com.spacelab.coffeeapp.mapper.ProductMapper;
+import com.spacelab.coffeeapp.service.AttributeProductService;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,20 +24,23 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+// Проверка изменений
 @Controller
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AttributeProductController {
 
-    private final ProductService productService;
-    private final ProductMapper productMapper;
+    private final AttributeProductService attributeProductService;
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
 
+    // ----------------- Для страницы редактирования продукта --------------
 
+    /*
+     * Запрашиваем список атрибутов продукта
+     */
     @GetMapping("/attribute/getAll")
     @ResponseBody
     public List<AttributeProductDto> getEntities(HttpSession session) {
@@ -45,6 +49,24 @@ public class AttributeProductController {
     }
 
 
+    /*
+     * Удаление атрибута
+     */
+    @DeleteMapping("/attribute/{attributeId}")
+    @ResponseBody
+    public ResponseEntity<?> deleteAttributeProduct(@PathVariable String attributeId,
+                                                    HttpSession session) {
+
+
+        ProductDto product = (ProductDto) session.getAttribute("product");
+        product.getAttributeProducts().removeIf(a -> a.getName().equals(attributeId));
+        session.setAttribute("product", product);
+        return ResponseEntity.badRequest().build();
+    }
+    // ----------------- Для страницы редактирования продукта --------------
+
+
+    // -------------------------- Для страницы Атрибута -----------------------------
     /*
      * Получаем на вход данные с формы продукта
      * Производим валидацию и сохраняем в сессию данные с формы
@@ -77,8 +99,7 @@ public class AttributeProductController {
             model.addAttribute("product", productDto);
             model.addAttribute("productId", id);
             model.addAttribute("statusList", Product.Status.values());
-            model.addAttribute("listCategories", categoryService.getAllCategory()
-                    .stream().map(categoryMapper::toDto).toList());
+            model.addAttribute("listCategories", categoryService.getAllCategoryDto());
             session.setAttribute("product", productDto);
             return new ModelAndView("products/productItem");
         }
@@ -186,31 +207,11 @@ public class AttributeProductController {
                     attributeProduct1.setType(attributeProductDto.getType());
                 }
             }
-
         }
-
-
         session.setAttribute("product", product);
-
         return new ModelAndView("redirect:/product/" + product.getId());
     }
 
-    /*
-     * Удаление атрибута
-     */
-    @DeleteMapping("/attribute/{attributeId}")
-    @ResponseBody
-    public ResponseEntity<?> deleteAttributeProduct(@PathVariable String attributeId,
-                                                    HttpSession session) {
-
-
-        ProductDto product = (ProductDto) session.getAttribute("product");
-
-        product.getAttributeProducts().removeIf(a -> a.getName().equals(attributeId));
-        session.setAttribute("product", product);
-
-        return ResponseEntity.badRequest().build();
-    }
 
     /*
      * Получаем все значения атрибута продукта по id
@@ -293,7 +294,7 @@ public class AttributeProductController {
     }
 
     /*
-     * Удаление значения атрибута
+     * Удаление значения атрибута из сессии
      */
     @DeleteMapping("/attributeValue/{attributeValueId}")
     @ResponseBody
@@ -313,6 +314,15 @@ public class AttributeProductController {
         }
         return ResponseEntity.badRequest().build();
     }
+    // -------------------------- Для страницы Атрибута -----------------------------
 
+    // -------------------------- Для страницы Заказа -----------------------------
+
+    @GetMapping("/attribute/getAttributesByProduct/{productId}")
+    @ResponseBody
+    public List<AttributeProductDto> getAttributesByProduct(@PathVariable String productId) {
+
+        return attributeProductService.getAllAttributesDtoByProduct(productId);
+    }
 
 }

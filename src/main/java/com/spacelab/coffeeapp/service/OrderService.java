@@ -1,6 +1,7 @@
 package com.spacelab.coffeeapp.service;
 
-import com.spacelab.coffeeapp.entity.Orders;
+import com.spacelab.coffeeapp.dto.OrdersDto;
+import com.spacelab.coffeeapp.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -9,22 +10,33 @@ import java.util.List;
 @Service
 public interface OrderService {
 
-    public void saveOrder(Orders order);
+    public void saveOrder(Order order);
 
-    public Orders getOrder(Long id);
+    public Order getOrder(Long id);
+    public OrdersDto getOrderDto(Long id);
 
-    public List<Orders> getAllOrders();
 
-    public void updateOrder(Long id, Orders order);
+    public List<Order> getAllOrders();
 
-    public void deleteOrder(Orders order);
+    public void updateOrder(Long id, Order order);
+
+    public void deleteOrder(Order order);
 
     public void deleteOrder(Long id);
 
-    public Page findAllOrders(int page, int pageSize);
 
-    public Page findOrdersByRequest(int page, int pageSize, String search);
+    Page<Order> findAllOrders(int page, int pageSize);
 
-    public long countOrders();
+    Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize);
 
+    public Page<OrdersDto> findOrdersByRequest(int page, int pageSize, String search);
+
+
+    Integer countAllOrders();
+
+    Integer countTodayOrders();
+
+    Long calculateTotalSales();
+
+    Long calculateTodaySales();
 }

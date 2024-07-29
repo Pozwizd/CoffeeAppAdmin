@@ -30,7 +30,7 @@ public class Customer {
     private String phoneNumber;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer", cascade = CascadeType.ALL)
-    private List<Orders> orders = new ArrayList<>();
+    private List<Order> orders = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private Language language;

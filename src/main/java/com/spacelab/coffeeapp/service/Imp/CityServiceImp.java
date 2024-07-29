@@ -34,7 +34,6 @@ public class CityServiceImp implements CityService  {
     @Override
     public void deleteCity(City city) {
         cityRepository.delete(city);
-
     }
 
     @Override
