@@ -1,9 +1,6 @@
 package com.spacelab.coffeeapp.mapper;
 
-import com.spacelab.coffeeapp.dto.DeliveryDto;
-import com.spacelab.coffeeapp.dto.OrderItemAttributeDto;
-import com.spacelab.coffeeapp.dto.OrderItemDto;
-import com.spacelab.coffeeapp.dto.OrdersDto;
+import com.spacelab.coffeeapp.dto.*;
 import com.spacelab.coffeeapp.entity.Delivery;
 import com.spacelab.coffeeapp.entity.OrderItem;
 import com.spacelab.coffeeapp.entity.OrderItemAttribute;
@@ -21,7 +18,6 @@ public class OrderMapper {
         OrdersDto ordersDto = new OrdersDto();
         ordersDto.setId(order.getId());
         ordersDto.setDateTimeOfCreate(order.getDateTimeOfCreate());
-        ordersDto.setDateTimeOfUpdate(order.getDateTimeOfUpdate());
         ordersDto.setDateTimeOfReady(order.getDateTimeOfReady());
         ordersDto.setStatus(order.getStatus());
         ordersDto.setPayment(order.getPayment());
@@ -72,9 +68,23 @@ public class OrderMapper {
             }
             ordersDto.setOrderItemsDto(orderItemsDto);
         }
+
+        CustomerDto customerDto = new CustomerDto();
+        customerDto.setId(order.getCustomer().getId());
+        customerDto.setName(order.getCustomer().getName());
+        customerDto.setEmail(order.getCustomer().getEmail());
+        customerDto.setDateOfBirth(order.getCustomer().getDateOfBirth());
+        customerDto.setAddress(order.getCustomer().getAddress());
+        customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
+        customerDto.setLanguage(order.getCustomer().getLanguage());
+        customerDto.setStatus(order.getCustomer().getStatus().toString());
+        ordersDto.setCustomerDto(customerDto);
         return ordersDto;
     }
 
+    public List<OrdersDto> toDto(List<Order> orders) {
+        return orders.stream().map(this::toDto).toList();
+    }
 
     public Page<OrdersDto> toDto(Page<Order> orders) {
         return orders.map(this::toDto);

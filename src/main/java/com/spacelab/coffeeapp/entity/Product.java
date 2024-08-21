@@ -24,13 +24,19 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "product_attribute_product",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "attribute_product_id")
+    )
     private List<AttributeProduct> attributeProducts = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
+    private Boolean deleted = false;
 
     public enum Status {
         ACTIVE,

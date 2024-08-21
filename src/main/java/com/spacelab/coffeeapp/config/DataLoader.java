@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Date;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -50,12 +51,12 @@ public class DataLoader {
     private void loadUsers() {
         long currentUserCount = userService.countUsers();
         if (currentUserCount < 10) {
-            long usersToCreate = 100 - currentUserCount;
+            long usersToCreate = 25 - currentUserCount;
             IntStream.range(0, (int) usersToCreate).forEach(i -> {
                 User user = new User();
                 user.setName(faker.name().fullName());
                 user.setEmail(faker.internet().emailAddress());
-                user.setRole(Role.ADMIN);
+                user.setRole(User.Role.ADMIN);
                 user.setPassword(faker.internet().password(8, 16));
                 userService.saveUser(user);
             });
@@ -79,21 +80,23 @@ public class DataLoader {
 
     private void loadProductsAndAttributes() {
         long currentProductCount = productService.countProducts();
-        if (currentProductCount < 100) {  // Увеличиваем количество продуктов до 100
-            long productsToCreate = 100 - currentProductCount;
+        if (currentProductCount < 25) {
+            long productsToCreate = 25 - currentProductCount;
             IntStream.range(0, (int) productsToCreate).forEach(i -> {
                 Product product = new Product();
                 product.setName(faker.commerce().productName());
                 product.setStatus(Product.Status.ACTIVE);
                 product.setDescription(faker.lorem().sentence());
-                product.setCategory(categoryService.getCategory((long) faker.number().numberBetween(1, 20)));
+                product.setCategory(categoryService.getCategory((long) faker.number().numberBetween(1, 20)).get());
                 productService.saveProduct(product);
 
                 AttributeProduct sizeAttribute = new AttributeProduct();
                 sizeAttribute.setName("Size");
                 sizeAttribute.setType(AttributeProduct.TypeAttribute.Option);
-                sizeAttribute.setProduct(product);
+                sizeAttribute.setProducts(Collections.singletonList(product));
                 attributeProductService.saveAttributeProduct(sizeAttribute);
+                product.setAttributeProducts(Collections.singletonList(sizeAttribute));
+                productService.saveProduct(product);
 
                 AttributeValue smallSize = new AttributeValue();
                 smallSize.setName("Small");
@@ -118,15 +121,15 @@ public class DataLoader {
 
     private void loadCustomers() {
         long currentCustomerCount = customerService.countCustomers();
-        if (currentCustomerCount < 100) {
-            long customersToCreate = 100 - currentCustomerCount;
+        if (currentCustomerCount < 25) {
+            long customersToCreate = 25 - currentCustomerCount;
             IntStream.range(0, (int) customersToCreate).forEach(i -> {
                 Customer customer = new Customer();
                 customer.setName(faker.name().fullName());
                 customer.setEmail(faker.internet().emailAddress());
                 customer.setAddress(faker.address().fullAddress());
                 customer.setPhoneNumber(faker.phoneNumber().phoneNumber());
-                customer.setDateOfBirth(Date.valueOf(faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
+                customer.setDateOfBirth(faker.date().birthday().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 customer.setLanguage(Language.EN);
                 customer.setStatus(CustomerStatus.ACTIVE);
                 customerService.saveCustomer(customer);
@@ -136,8 +139,8 @@ public class DataLoader {
 
     private void loadCities() {
         long currentCityCount = cityService.countCities();
-        if (currentCityCount < 100) {
-            long citiesToCreate = 100 - currentCityCount;
+        if (currentCityCount < 25) {
+            long citiesToCreate = 25 - currentCityCount;
             IntStream.range(0, (int) citiesToCreate).forEach(i -> {
                 City city = new City();
                 city.setName(faker.address().city());
@@ -150,9 +153,9 @@ public class DataLoader {
 
     private void loadLocations() {
         long currentLocationCount = locationService.countLocations();
-        if (currentLocationCount < 100) {
+        if (currentLocationCount < 25) {
             Random random = new Random();
-            long locationsToCreate = 100 - currentLocationCount;
+            long locationsToCreate = 25 - currentLocationCount;
             IntStream.range(0, (int) locationsToCreate).forEach(i -> {
                 Location location = new Location();
                 long[] cityIds = cityService.findAllCities().stream().mapToLong(City::getId).toArray();
@@ -168,28 +171,27 @@ public class DataLoader {
 
     private void loadOrdersAndOrderItems() {
         long currentOrderCount = orderService.countAllOrders();
-        if (currentOrderCount < 100) {
-            long ordersToCreate = 100 - currentOrderCount;
+        if (currentOrderCount < 25) {
+            long ordersToCreate = 25 - currentOrderCount;
             IntStream.range(0, (int) ordersToCreate).forEach(i -> {
                 Order order = new Order();
                 order.setDateTimeOfCreate(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-                order.setDateTimeOfUpdate(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 order.setDateTimeOfReady(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 order.setPayment(Order.Payment.CASH);
                 order.setStatus(Order.OrderStatus.DONE);
                 if (i % 3 == 0) {
                     order.setStatus(Order.OrderStatus.CANCELLED);
                 }
-                order.setCustomer(customerService.getCustomer((long) faker.number().numberBetween(1, 100)));
+                order.setCustomer(customerService.getCustomer((long) faker.number().numberBetween(1, 25)));
 
                 orderService.saveOrder(order);
 
                 long orderItemCount = orderItemService.countOrderItems();
-                long orderItemsToCreate = 100 - orderItemCount;
+                long orderItemsToCreate = 25 - orderItemCount;
                 IntStream.range(0, (int) orderItemsToCreate).forEach(j -> {
                     OrderItem orderItem = new OrderItem();
                     orderItem.setQuantity(faker.number().numberBetween(1, 5));
-                    Product product = productService.getProduct((long) faker.number().numberBetween(1, 100));
+                    Product product = productService.getProduct((long) faker.number().numberBetween(1, 25)).get();
                     orderItem.setProduct(product);
                     orderItem.setOrder(order);
 
@@ -214,13 +216,13 @@ public class DataLoader {
 
     private void loadDeliveries() {
         long currentDeliveryCount = deliveryService.countDeliveries();
-        if (currentDeliveryCount < 100) {
-            long deliveriesToCreate = 100 - currentDeliveryCount;
+        if (currentDeliveryCount < 25) {
+            long deliveriesToCreate = 25 - currentDeliveryCount;
             IntStream.range(0, (int) deliveriesToCreate).forEach(i -> {
                 Delivery delivery = new Delivery();
                 delivery.setName(faker.name().fullName());
                 delivery.setPhoneNumber(faker.phoneNumber().phoneNumber());
-                delivery.setCity(cityService.getCity((long) faker.number().numberBetween(1, 100)));
+                delivery.setCity(cityService.getCity((long) faker.number().numberBetween(1, 25)));
                 delivery.setStreet(faker.address().streetName());
                 delivery.setBuilding(faker.address().buildingNumber());
                 delivery.setSubDoor(faker.address().buildingNumber());

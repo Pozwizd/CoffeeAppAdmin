@@ -22,12 +22,15 @@ public class AttributeProduct {
   @Enumerated(EnumType.STRING)
   private TypeAttribute type;
 
-  @ManyToOne
-  @JoinColumn(name = "product_id")
-  private Product product;
+  @ManyToMany(mappedBy = "attributeProducts")
+  private List<Product> products = new ArrayList<>();
 
   @OneToMany(mappedBy = "attributeProduct")
   private List<AttributeValue> attributeValues = new ArrayList<>();
+
+  private Boolean deleted = false;
+
+  private Boolean status = true;
 
   public enum TypeAttribute {
     Basic,

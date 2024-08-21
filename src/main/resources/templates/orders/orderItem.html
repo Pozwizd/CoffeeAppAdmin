@@ -26,7 +26,6 @@
                                 <th class="text-center">ID</th>
                                 <th class="text-center">Вид оплаты</th>
                                 <th class="text-center">Сумма</th>
-                                <th class="text-center">Время оплаты</th>
                                 <th class="text-center">Статус</th>
                             </tr>
                             </thead>
@@ -50,7 +49,6 @@
                         <table class="table table-striped table-hover">
                             <thead>
                             <tr>
-                                <th class="text-center">№</th>
                                 <th class="text-center">Продукт</th>
                                 <th class="text-center">Количество товаров</th>
                                 <th class="text-center"></th>
@@ -67,10 +65,16 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Доставка</span>
-                        <button class="btn btn-custom btn-sm" data-bs-toggle="modal" onclick="openModalDelivery()" id="editDelivery"
-                                data-bs-target="#deliveryModal">
-                            <i class="ti ti-edit"></i>
-                        </button>
+                        <div>
+                            <button class="btn btn-custom btn-sm" data-bs-toggle="modal" onclick="openModalDelivery()" id="editDelivery"
+                                    data-bs-target="#deliveryModal">
+                                <i class="ti ti-edit"></i>
+                            </button>
+                            <button class="btn btn-custom btn-sm" onclick="deleteDelivery()">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                        </div>
+
                     </div>
                     <table class="table">
                         <tbody>
@@ -104,468 +108,6 @@
             </div>
         </div>
 
-        <script>
-            $(document).ready(function () {
-                // Загружаем элементы заказа при загрузке страницы
-                loadOrderTable();
-            })
-            function loadOrderTable() {
-                $.ajax({
-                    url: '/order/fromSession',
-                    method: 'GET',
-                    success: function (response) {
-                        console.log(response)
-
-                        $('#orderTableBody').empty();
-                            $('#orderTableBody').append(
-                                `<tr>
-                        <td class="text-center">${response.id}</td>
-                        <td class="text-center">${response.payment}</td>
-                        <td class="text-center">${response.totalAmount}</td>
-                        <td class="text-center"></td>
-                        <td class="text-center">${response.status}</td>
-                    </tr>`
-                            );
-
-                        $('#orderItemsTableBody').empty();
-                        response.orderItemsDto.forEach(function (item) {
-                            $('#orderItemsTableBody').append(
-                                `<tr>
-                        <td class="text-center">${item.id}</td>
-                        <td class="text-center">${item.productName}</td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="d-flex justify-content-center">
-                            <button class="btn btn-icon btn-primary" data-bs-toggle="modal" data-bs-target="#orderItemModal" onclick="openModalOrderItem(${item.id})"><i class="ti ti-pencil"></i></button>
-                            <button class="btn btn-icon btn-danger" onclick="deleteOrderItem(${item.id})"><i class="ti ti-trash"></i></button>
-                        </td>
-                    </tr>`
-                            );
-                        });
-
-                        $('#deliveryTableName').empty();
-                        $('#deliveryTableStatus').empty();
-                        $('#deliveryTablePhone').empty();
-                        $('#deliveryTableStreet').empty();
-                        $('#deliveryTableBuilding').empty();
-                        $('#deliveryTableApartment').empty();
-
-                        $('#deliveryTableName').text(response.deliveryDto.name);
-                        $('#deliveryTableStatus').text(response.deliveryDto.status);
-                        $('#deliveryTablePhone').text(response.deliveryDto.phoneNumber);
-                        $('#deliveryTableStreet').text(response.deliveryDto.street);
-                        $('#deliveryTableBuilding').text(response.deliveryDto.building);
-                        $('#deliveryTableApartment').text(response.deliveryDto.apartment);
-                    },
-                    error: function (err) {
-                        console.log('Error loading order items:', err);
-                    }
-                });
-            }
-        </script>
-
-        <!-- Модальное окно для создания и редактирования элементов заказа -->
-        <div class="modal fade" id="orderItemModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="entity-modal-body">
-                        <form id="entity-form">
-                            <div class="row g-2">
-                                <input type="hidden" id="idOrderItem">
-                                <div class="col mb-0">
-                                    <label for="category" class="form-label">Категория</label>
-                                    <select
-                                            type="text"
-                                            id="category"
-                                            class="form-control"
-                                            name="category">
-                                    </select>
-                                    <div id="categoryError" class="text-danger"></div>
-
-                                </div>
-                                <div class="col mb-0">
-                                    <label for="product" class="form-label">Продукт</label>
-                                    <select
-                                            type="text"
-                                            id="product"
-                                            class="form-control"
-                                            name="product">
-                                    </select>
-                                    <div id="productError" class="text-danger"></div>
-                                </div>
-                            </div>
-                            <div id="attributes">
-
-                            </div>
-
-                            <div class="row">
-                                <div class="col mb-3">
-                                    <label for="quantity" class="form-label">Количество</label>
-                                    <input
-                                            type="number"
-                                            id="quantity"
-                                            class="form-control"
-                                            min="1"
-                                            max="50"
-                                            name="quantity"
-                                            placeholder="Количество"
-                                    />
-                                    <div id="quantityError" class="text-danger"></div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="save-entity-btn">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function () {
-
-                // Загружаем категории при загрузке страницы
-                loadCategories();
-
-            });
-
-            $(document).ready(function () {
-                // Загрузка категорий при изменении модального окна
-                $('#category').on('change', function () {
-                    setProduct($('#category'));
-                });
-                $('#product').on('change', function () {
-                    setAttributeProduct($('#product'));
-                });
-                // Сохранение нового элемента заказа
-                $('#save-entity-btn').on('click', function () {
-                    const itemId = $('#idOrderItem').val();
-                    if (itemId) {
-                        editOrderItem(itemId); // Если есть ID, то редактируем
-                    } else {
-                        saveOrderItem(); // Если нет ID, то создаем новый элемент
-                    }
-                });
-            });
-
-            <!-- Для работы с элементами заказа -->
-            // Функции для создания элемента заказа
-            function saveOrderItem() {
-                let attributes = [];
-                $('select[name="attributeProduct[]"]').each(function (index, element) {
-                    attributes.push({
-                        id: null,
-                        orderItemId: null,
-                        productAttributeId: $(this).val(),
-                        attributeValueId: $('select[name="attributeValue[]"]').eq(index).val()
-                    });
-                });
-
-                let data = {
-                    categoryId: $('#category').val(),
-                    productId: $('#product').val(),
-                    quantity: $('#quantity').val(),
-                    attributes: attributes
-                };
-
-                $.ajax({
-                    url: '/order/item/create',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function (response) {
-                        $('#orderItemModal').modal('hide');
-                        loadOrderTable();
-                        $('.modal-backdrop').remove();
-                        loadOrderTable();
-                    },
-                    error: function (err) {
-                        console.log('Error saving order item:', err);
-                    }
-                });
-            }
-
-            // Функции для изменения элемента заказа
-            function editOrderItem(itemId) {
-                console.log('Отправка началась' + itemId)
-                let attributes = [];
-                $('select[name="attributeProduct[]"]').each(function (index, element) {
-                    attributes.push({
-                        id: null,
-                        orderItemId: itemId,
-                        productAttributeId: $('select[name="attributeProduct[]"]').eq(index).val(),
-                        attributeValueId: $('select[name="attributeValue[]"]').eq(index).val()
-                    });
-                });
-
-                let data = {
-                    id: itemId,
-                    categoryId: $('#category').val(),
-                    productId: $('#product').val(),
-                    quantity: $('#quantity').val(),
-                    attributes: attributes
-                };
-
-                $.ajax({
-                    url: '/order/item/' + itemId,
-                    method: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify(data),
-                    success: function (response) {
-                        $('#orderItemModal').modal('hide');
-                        loadOrderTable();
-                        $('.modal-backdrop').remove();
-                        loadOrderTable();
-                    },
-                    error: function (err) {
-                        console.log('Error editing order item:', err);
-                    }
-                });
-            }
-
-            function loadCategories() {
-                $.ajax({
-                    url: '/category/getAllForOrder',
-                    method: 'GET',
-                    success: function (response) {
-                        $('#category').empty().append('<option value="">Select Category</option>');
-                        response.forEach(category => {
-                            $('#category').append(`<option value="${category.id}">${category.name}</option>`);
-                        });
-                    },
-                    error: function (err) {
-                        console.log('Error loading categories:', err);
-                    }
-                });
-            }
-
-            // Загрузка списка продуктов в select на основе выбранной категории
-            function setProduct(element, callback) {
-                const categoryId = element.val();
-                if (categoryId) {
-                    $.ajax({
-                        url: '/product/getByCategory/' + categoryId,
-                        method: 'GET',
-                        success: function (response) {
-                            $('#product').empty().append('<option value="">Select Product</option>');
-                            response.forEach(product => {
-                                $('#product').append(`<option value="${product.id}">${product.name}</option>`);
-                            });
-                            if (callback) callback();
-                        },
-                        error: function (err) {
-                            console.log('Error loading products:', err);
-                        }
-                    });
-                } else {
-                    $('#product').empty().append('<option value="">Select Product</option>');
-                }
-            }
-
-            // Загрузка атрибута и списка его значений на основе выбранного продукта
-            function setAttributeProduct(element, callback) {
-                const productId = element.val();
-                if (productId) {
-                    $.ajax({
-                        url: '/attribute/getAttributesByProduct/' + productId,
-                        method: 'GET',
-                        success: function (response) {
-                            $('#attributes').empty();
-                            response.forEach(attribute => {
-                                const attributeContainer = $(`
-                        <div class="row g-2">
-                            <div class="col mb-0">
-                                <label class="form-label">Свойство</label>
-                                <select class="form-control" name="attributeProduct[]">
-                                    <option value="${attribute.id}">${attribute.name}</option>
-                                </select>
-                                <div class="text-danger"></div>
-                            </div>
-                            <div class="col mb-0">
-                                <label for="attributeValue" class="form-label">Значение атрибута</label>
-                                <select class="form-control" name="attributeValue[]">
-                                    ${attribute.attributeValues.map(value => `
-                                        <option value="${value.id}">${value.name}</option>
-                                    `).join('')}
-                                </select>
-                                <div class="text-danger"></div>
-                            </div>
-                        </div>
-                    `);
-                                $('#attributes').append(attributeContainer);
-                            });
-                            if (callback) callback();
-                        },
-                        error: function (err) {
-                            console.log('Error loading attributes:', err);
-                        }
-                    });
-                } else {
-                    $('#attributes').empty();
-                }
-            }
-
-            // Удаление элемента заказа
-            function deleteOrderItem(itemId) {
-                $.ajax({
-                    url: '/order/item/' + itemId,
-                    method: 'DELETE',
-                    success: function () {
-                        loadOrderTable();
-                    },
-                    error: function (err) {
-                        console.log('Error deleting order item:', err);
-                    }
-                });
-            }
-
-            // Загрузка данных элемента заказа в модальное окно
-            function openModalOrderItem(itemId) {
-                $.ajax({
-                    url: '/order/item/' + itemId,
-                    method: 'GET',
-                    success: function (response) {
-                        $('#idOrderItem').val(response.id);
-                        $('#category').val(response.categoryId).trigger('change');
-
-                        setTimeout(function () {
-                            setProduct($('#category'), function () {
-                                $('#product').val(response.productId).trigger('change');
-                                $('#quantity').val(response.quantity);
-
-                                setTimeout(function () {
-                                    setAttributeProduct($('#product'), function () {
-                                        response.attributes.forEach((attribute, index) => {
-                                            const attributeProductSelect = $('select[name="attributeProduct[]"]').eq(index);
-                                            const attributeValueSelect = $('select[name="attributeValue[]"]').eq(index);
-
-                                            setTimeout(function () {
-                                                attributeProductSelect.val(attribute.id).trigger('change');
-                                            }, 500);
-
-                                            setTimeout(function () {
-                                                attributeValueSelect.val(attribute.attributeValueId).trigger('change');
-                                            }, 1000);
-                                        });
-                                    });
-                                }, 500);
-                            });
-                        }, 500);
-                    },
-                    error: function (err) {
-                        console.log('Error loading order item:', err);
-                    }
-                });
-            }
-            <!-- Для работы с элементами заказа -->
-        </script>
-
-        <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="paymentModalLabel">Редактирование</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="payment-modal-body">
-                        <form id="payment-form">
-                            <div class="row g-2">
-                                <div class="col mb-0">
-                                    <label for="paymentType" class="form-label">Вид оплаты</label>
-                                    <select
-                                            type="text"
-                                            id="paymentType"
-                                            class="form-control"
-                                            name="paymentType">
-                                    </select>
-                                    <div id="paymentTypeError" class="text-danger"></div>
-                                </div>
-                                <div class="col mb-0">
-                                    <label for="orderStatus" class="form-label">Статус заказа</label>
-                                    <select
-                                            type="text"
-                                            id="orderStatus"
-                                            class="form-control"
-                                            name="orderStatus">
-                                    </select>
-                                    <div id="orderStatusError" class="text-danger"></div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="save-payment-btn">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function () {
-                loadTypePayment()
-                loadStatusOrder()
-            })
-
-            function loadTypePayment() {
-                $.ajax({
-                    url: '/order/typePayment',
-                    method: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                        $('#paymentType').empty();
-                        $('#paymentType').append(response.map(type => `<option value="${type}">${type}</option>`).join(''));
-                    },
-                    error: function (err) {
-                        console.log('Error loading order:', err);
-                    }
-                });
-            }
-
-            function loadStatusOrder() {
-                $.ajax({
-                    url: '/order/status',
-                    method: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                        $('#orderStatus').empty();
-                        $('#orderStatus').append(response.map(status => `<option value="${status}">${status}</option>`).join(''));
-                    },
-                    error: function (err) {
-                        console.log('Error loading order:', err);
-                    }
-                });
-            }
-
-            function openModalPayment() {
-                $.ajax({
-                    url: '/order/payment',
-                    method: 'GET',
-                    success: function (response) {
-
-                    },
-                    error: function (err) {
-                        console.log('Error loading order:', err);
-                    }
-                });
-            }
-
-            function savePayment() {
-                $.ajax({
-                    url: '/order/payment',
-                    method: 'PUT',
-                    success: function (response) {
-
-                    },
-                    error: function (err) {
-                        console.log('Error loading order:', err);
-                    }
-                });
-            }
-        </script>
         <!-- Delivery Modal -->
         <div class="modal fade" id="deliveryModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -698,18 +240,358 @@
                 </div>
             </div>
         </div>
-        <script>
+
+
+        <script th:inline="javascript">
+            let order = [[${order}]];
+            console.log("Сущность заказа:", order);
+            let itemToDeleteIndex = null;
+
             $(document).ready(function () {
-                loadCitiesFotDelivery()
+                initializeEventHandlers();
+                loadOrderTable();
+                loadCategories();
+                loadTypePayment()
+                loadStatusOrder()
+                loadCitiesForDelivery()
                 loadStatusDelivery()
             })
+
+            function initializeEventHandlers() {
+                $('#category').on('change', function () {
+                    setProduct($('#category'));
+                });
+
+                $('#product').on('change', function () {
+                    setAttributeProduct($('#product'));
+                });
+                $('#save-entity-btn').on('click', function () {
+                    const itemId = $('#idOrderItem').val();
+
+                    console.log(itemId);
+                    if (itemId) {
+                        editOrderItem(itemId);
+                    } else {
+                        saveOrderItem();
+                    }
+                });
+                $('#save-payment-btn').on('click', function () {
+                    savePayment();
+                });
+                $('#save-delivery-btn').on('click', function () {
+                    saveDelivery();
+                });
+
+                $('#createOrderItem').on('click', function () {
+                    cleanModalOrderItem();
+                });
+
+                $('#editPayment').on('click', function () {
+                    openModalPayment();
+                })
+                $('#btn-save-order').on('click', function () {
+                    sendOrderData();
+                })
+
+                $('#confirm-delete-btn').on('click', function () {
+                    if (itemToDeleteIndex !== null) {
+                        deleteOrderItem(itemToDeleteIndex);
+                        $('#deleteConfirmModal').modal('hide');
+                        $('.modal-backdrop').remove();
+                    }
+                });
+            }
+
+            function sendOrderData() {
+                console.log("Сохранение данных о заказе");
+                $.ajax({
+                    url: '/order/' + order.id,
+                    type: 'POST',
+                    data: JSON.stringify(order),
+                    contentType: 'application/json',
+                    success: function (data) {
+                        console.log(data);
+                        // Go to back page
+                        window.history.back();
+                    },
+                    error: function (data) {
+                        showToast('error', 'Ошибка', 'Произошла ошибка при сохранении данных о заказе, перезагрузите страницу и попробуйте ещё раз.');
+                        console.log(data);
+                    }
+                })
+            }
+
+            function cleanModalOrderItem() {
+                $('#idOrderItem').val('');
+                $('#category').val('');
+                $('#product').val('');
+                $('#product').empty();
+                $('#quantity').val('');
+                $('#attributes').empty();
+            }
+
+            function loadOrderTable() {
+                let response = order
+
+                console.log("Сущность заказа:", response);
+                $('#orderTableBody').empty();
+                $('#orderTableBody').append(
+                    `<tr>
+                        <td class="text-center">${response.id}</td>
+                        <td class="text-center">${response.payment}</td>
+                        <td class="text-center">${response.totalAmount}</td>
+                        <td class="text-center">${response.status}</td>
+                    </tr>`
+                );
+
+                $('#orderItemsTableBody').empty();
+                response.orderItemsDto.forEach(function (item, index) {
+                    $('#orderItemsTableBody').append(
+                        `<tr>
+                            <td class="text-center">${item.productName}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="d-flex justify-content-center">
+                                <button class="btn btn-icon btn-primary" data-bs-toggle="modal" data-bs-target="#orderItemModal" onclick="openModalOrderItem(${index})"><i class="ti ti-pencil"></i></button>
+                                <button class="btn btn-icon btn-danger" onclick="openDeleteConfirmModal(${index})"><i class="ti ti-trash"></i></button>
+                            </td>
+                        </tr>`
+                    );
+
+                });
+
+                $('#deliveryTableName').empty();
+                $('#deliveryTableStatus').empty();
+                $('#deliveryTablePhone').empty();
+                $('#deliveryTableStreet').empty();
+                $('#deliveryTableBuilding').empty();
+                $('#deliveryTableApartment').empty();
+
+                $('#deliveryTableName').text(response.deliveryDto.name);
+                $('#deliveryTableStatus').text(response.deliveryDto.status);
+                $('#deliveryTablePhone').text(response.deliveryDto.phoneNumber);
+                $('#deliveryTableStreet').text(response.deliveryDto.street);
+                $('#deliveryTableBuilding').text(response.deliveryDto.building);
+                $('#deliveryTableApartment').text(response.deliveryDto.apartment);
+            }
+
+            async function openModalOrderItem(itemId) {
+                let response = order.orderItemsDto[itemId];
+
+                console.log("Item:", response);
+                if (response) {
+                    $('#idOrderItem').val(response.id);
+                    $('#category').val(response.categoryId);
+                    await setProduct($('#category'));
+
+                    $('#product').val(response.productId);
+                    await setAttributeProduct($('#product'));
+
+                    response.attributes.forEach((attribute, index) => {
+                        $('select[name="attributeProduct[]"]').eq(index).val(attribute.productAttributeId).trigger('change');
+                        console.log("Attribute:", attribute.productAttributeId);
+                        $('select[name="attributeValue[]"]').eq(index).val(attribute.attributeValueId).trigger('change');
+                        console.log("Value:", attribute.attributeValueId);
+                    });
+
+                    $('#quantity').val(response.quantity);
+                    console.log("==============================================");
+                } else {
+                    console.error("Item not found for editing:", itemId);
+                }
+            }
+
+            function setProduct(element) {
+                return new Promise((resolve, reject) => {
+                    let categoryId = element.val();
+                    if (categoryId) {
+                        $.ajax({
+                            url: '/product/getByCategory/' + categoryId,
+                            method: 'GET',
+                            success: function (response) {
+                                $('#product').empty().append('<option value="">Select Product</option>');
+                                response.forEach(product => {
+                                    $('#product').append(`<option value="${product.id}">${product.name}</option>`);
+                                });
+                                resolve();  // Успешное завершение
+                            },
+                            error: function (err) {
+                                console.log('Error loading products:', err);
+                                reject(err);  // Ошибка
+                            }
+                        });
+                    } else {
+                        $('#product').empty().append('<option value="">Select Product</option>');
+                        resolve();
+                    }
+                });
+            }
+
+            function setAttributeProduct(element) {
+                return new Promise((resolve, reject) => {
+                    const productId = element.val();
+                    if (productId) {
+                        $.ajax({
+                            url: '/attribute/getAttributesByProduct/' + productId,
+                            method: 'GET',
+                            success: function (response) {
+                                $('#attributes').empty();
+                                response.forEach(attribute => {
+                                    const attributeContainer = $(`
+                            <div class="row g-2">
+                                <div class="col mb-0">
+                                    <label class="form-label">Свойство</label>
+                                    <select class="form-control" name="attributeProduct[]">
+                                        <option value="${attribute.id}">${attribute.name}</option>
+                                    </select>
+                                    <div class="text-danger"></div>
+                                </div>
+                                <div class="col mb-0">
+                                    <label for="attributeValue" class="form-label">Значение атрибута</label>
+                                    <select class="form-control" name="attributeValue[]">
+                                        ${attribute.attributeValues.map(value => `
+                                            <option value="${value.id}">${value.name}</option>
+                                        `).join('')}
+                                    </select>
+                                    <div class="text-danger"></div>
+                                </div>
+                            </div>
+                        `);
+                                    $('#attributes').append(attributeContainer);
+                                });
+                                resolve();  // Успешное завершение
+                            },
+                            error: function (err) {
+                                console.log('Error loading attributes:', err);
+                                reject(err);  // Ошибка
+                            }
+                        });
+                    } else {
+                        $('#attributes').empty();
+                        resolve();
+                    }
+                });
+            }
+
+
+            function loadCategories() {
+                $.ajax({
+                    url: '/category/getAllForOrder',
+                    method: 'GET',
+                    success: function (response) {
+                        $('#category').empty().append('<option value="">Select Category</option>');
+                        response.forEach(category => {
+                            $('#category').append(`<option value="${category.id}">${category.name}</option>`);
+                        });
+                    },
+                    error: function (err) {
+                        console.log('Error loading categories:', err);
+                    }
+                });
+            }
+            function saveOrderItem() {
+                console.log("work saveOrderItem");
+                let attributes = [];
+                $('select[name="attributeProduct[]"]').each(function (index, element) {
+                    attributes.push({
+                        id: null,
+                        orderItemId: null,
+                        productAttributeId: parseInt($(this).val()),
+                        attributeValueId: parseInt($('select[name="attributeValue[]"]').eq(index).val())
+                    });
+                });
+
+                let data = {
+                    id: null,
+                    categoryId: parseInt($('#category').val()),
+                    productId: parseInt($('#product').val()),
+                    productName: $('#product option:selected').text(),
+                    quantity: parseInt($('#quantity').val()) ,
+                    attributes: attributes
+                };
+
+                order.orderItemsDto.push(data);
+                $('#orderItemModal').modal('hide');
+                $('.modal-backdrop').remove();
+                recalculationAmount();
+                loadOrderTable();
+            }
+            function editOrderItem(itemId) {
+                console.log("work editOrderItem");
+                for (let i = 0; i < order.orderItemsDto.length; i++) {
+                    if (order.orderItemsDto[i].id === parseInt(itemId)) {
+                        order.orderItemsDto[i].categoryId = parseInt($('#category').val());
+                        order.orderItemsDto[i].productId = parseInt($('#product').val());
+                        console.log($('#quantity').val());
+                        console.log(order.orderItemsDto[i].quantity);
+                        order.orderItemsDto[i].quantity = $('#quantity').val();
+                        $('select[name="attributeProduct[]"]').each(function (index, element) {
+                            if (!Array.isArray(order.orderItemsDto[i].attributes)) {
+                                order.orderItemsDto[i].attributes = [];
+                            }
+                            if (typeof order.orderItemsDto[i].attributes[index] === 'undefined') {
+                                order.orderItemsDto[i].attributes[index] = {};
+                            }
+
+                            // Присваиваем значения
+                            order.orderItemsDto[i].attributes[index].productAttributeId = parseInt($('select[name="attributeProduct[]"]').eq(index).val());
+                            order.orderItemsDto[i].attributes[index].attributeValueId = parseInt($('select[name="attributeValue[]"]').eq(index).val());
+                        });
+                        break;
+                    }
+                }
+                $('#orderItemModal').modal('hide');
+                $('.modal-backdrop').remove();
+                recalculationAmount(loadOrderTable);
+            }
+            function deleteOrderItem(index) {
+                if (index >= 0 && index < order.orderItemsDto.length) {
+                    console.log("Deleted order item with ID:", order.orderItemsDto[index].id);
+                    order.orderItemsDto.splice(index, 1);
+                    recalculationAmount(loadOrderTable);
+                } else {
+                    console.error("Index out of range");
+                }
+            }
+            function recalculationAmount(callback) {
+                let totalAmount = 0;
+                $.ajax({
+                    url: '/attributeValue/getAllForOrder',
+                    method: 'GET',
+                    success: function(response) {
+                        order.orderItemsDto.forEach(item => {
+                            item.attributes.forEach(attribute => {
+                                let attributeValue = response.find(value => value.id == attribute.attributeValueId);
+                                if (attributeValue.priceWithDiscount !== null && attributeValue.priceWithDiscount !== 0) {
+                                    totalAmount = totalAmount + (attributeValue.priceWithDiscount * item.quantity);
+                                    console.log("priceWithDiscount", totalAmount);
+                                } else {
+                                    totalAmount = totalAmount + (attributeValue.price * item.quantity);
+                                    console.log("price", totalAmount);
+                                }
+                            });
+                        });
+                        order.totalAmount = totalAmount;
+                        console.log("Total Amount:", order.totalAmount);
+
+                        // Вызов callback после пересчета суммы
+                        if(callback) callback();
+                    },
+                    error: function(err) {
+                        console.log('Error loading order:', err);
+                    }
+                });
+            }
+
+            function openDeleteConfirmModal(index) {
+                itemToDeleteIndex = index;
+                $('#deleteConfirmModal').modal('show');
+            }
 
             function loadStatusDelivery() {
                 $.ajax({
                     url: '/order/getStatusDelivery',
                     method: 'GET',
                     success: function (response) {
-                        console.log(response);
                         response.forEach(status => {
                             $('#statusDelivery').append(`<option value="${status}">${status}</option>`)
                         })
@@ -719,13 +601,22 @@
                     }
                 });
             }
-
-            function loadCitiesFotDelivery() {
+            function openModalPayment() {
+                $('#paymentType').val(order.payment)
+                $('#orderStatus').val(order.status)
+            }
+            function savePayment() {
+                order.payment = $('#paymentType').val();
+                order.status = $('#orderStatus').val();
+                $('#orderModal').modal('hide');
+                $('.modal-backdrop').remove();
+                loadOrderTable();
+            }
+            function loadCitiesForDelivery() {
                 $.ajax({
                     url: '/order/getCities',
                     method: 'GET',
                     success: function (response) {
-                        console.log(response);
                         response.forEach(city => {
                             $('#cityDelivery').append(`<option value="${city.id}">${city.name}</option>`)
                         })
@@ -735,50 +626,64 @@
                     }
                 });
             }
-
             function openModalDelivery() {
+                let response = order.deliveryDto;
+                $('#nameDelivery').val(response.name);
+                $('#phoneNumberDelivery').val(response.phoneNumber);
+                $('#cityDelivery').val(response.cityId);
+                $('#streetDelivery').val(response.street);
+                $('#buildingDelivery').val(response.building);
+                $('#subDoorDelivery').val(response.subDoor);
+                $('#apartmentDelivery').val(response.apartment);
+                $('#dataDelivery').val(response.deliveryDate);
+                $('#timeDelivery').val(response.deliveryTime);
+                $('#changeAmount').val(response.changeAmount);
+                $('#statusDelivery').val(response.status.toString());
+            }
+            function saveDelivery() {
+                order.deliveryDto.name = $('#nameDelivery').val();
+                order.deliveryDto.phoneNumber = $('#phoneNumberDelivery').val();
+                order.deliveryDto.cityId = $('#cityDelivery').val();
+                order.deliveryDto.street = $('#streetDelivery').val();
+                order.deliveryDto.building = $('#buildingDelivery').val();
+                order.deliveryDto.subDoor = $('#subDoorDelivery').val();
+                order.deliveryDto.apartment = $('#apartmentDelivery').val();
+                order.deliveryDto.deliveryDate = $('#dataDelivery').val();
+                order.deliveryDto.deliveryTime = $('#timeDelivery').val();
+                order.deliveryDto.changeAmount = $('#changeAmount').val();
+                order.deliveryDto.status = $('#statusDelivery').val();
+                $('#deliveryModal').modal('hide');
+                $('.modal-backdrop').remove();
+                loadOrderTable();
+            }
+            function deleteDelivery() {
+                order.deliveryDto = null;
+                $('#deliveryModal').modal('hide');
+                $('.modal-backdrop').remove();
+                loadOrderTable();
+            }
+
+
+            function loadTypePayment() {
                 $.ajax({
-                    url: '/order/delivery',
+                    url: '/order/typePayment',
                     method: 'GET',
                     success: function (response) {
-                        console.log(response);
-                        $('#nameDelivery').val(response.name);
-                        $('#phoneNumberDelivery').val(response.phoneNumber);
-                        $('#cityDelivery').val(response.cityId); // Предполагается, что у вас есть поле cityId
-                        $('#streetDelivery').val(response.street);
-                        $('#buildingDelivery').val(response.building);
-                        $('#subDoorDelivery').val(response.subDoor);
-                        $('#apartmentDelivery').val(response.apartment);
-                        $('#dataDelivery').val(response.deliveryDate);
-                        $('#timeDelivery').val(response.deliveryTime);
-                        $('#changeAmount').val(response.changeAmount);
-                        $('#statusDelivery').val(response.status.toString());
+                        $('#paymentType').empty();
+                        $('#paymentType').append(response.map(type => `<option value="${type}">${type}</option>`).join(''));
                     },
                     error: function (err) {
                         console.log('Error loading order:', err);
                     }
                 });
             }
-
-            function saveDelivery() {
+            function loadStatusOrder() {
                 $.ajax({
-                    url: '/order/delivery',
-                    method: 'POST',
+                    url: '/order/status',
+                    method: 'GET',
                     success: function (response) {
-
-                    },
-                    error: function (err) {
-                        console.log('Error loading order:', err);
-                    }
-                });
-            }
-
-            function deleteDelivery() {
-                $.ajax({
-                    url: '/order/delivery',
-                    method: 'DELETE',
-                    success: function (response) {
-
+                        $('#orderStatus').empty();
+                        $('#orderStatus').append(response.map(status => `<option value="${status}">${status}</option>`).join(''));
                     },
                     error: function (err) {
                         console.log('Error loading order:', err);
@@ -786,10 +691,136 @@
                 });
             }
         </script>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmModalLabel">Подтвердите удаление</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить этот элемент?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно для создания и редактирования элементов заказа -->
+        <div class="modal fade" id="orderItemModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="entity-modal-body">
+                        <form id="entity-form">
+                            <div class="row g-2">
+                                <input type="hidden" id="idOrderItem">
+                                <div class="col mb-0">
+                                    <label for="category" class="form-label">Категория</label>
+                                    <select
+                                            type="text"
+                                            id="category"
+                                            class="form-control"
+                                            name="category">
+                                    </select>
+                                    <div id="categoryError" class="text-danger"></div>
+
+                                </div>
+                                <div class="col mb-0">
+                                    <label for="product" class="form-label">Продукт</label>
+                                    <select
+                                            type="text"
+                                            id="product"
+                                            class="form-control"
+                                            name="product">
+                                    </select>
+                                    <div id="productError" class="text-danger"></div>
+                                </div>
+                            </div>
+                            <div id="attributes">
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col mb-3">
+                                    <label for="quantity" class="form-label">Количество</label>
+                                    <input
+                                            type="number"
+                                            id="quantity"
+                                            class="form-control"
+                                            min="1"
+                                            max="50"
+                                            name="quantity"
+                                            placeholder="Количество"
+                                    />
+                                    <div id="quantityError" class="text-danger"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="save-entity-btn">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="paymentModalLabel">Редактирование</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="payment-modal-body">
+                        <form id="payment-form">
+                            <div class="row g-2">
+                                <div class="col mb-0">
+                                    <label for="paymentType" class="form-label">Вид оплаты</label>
+                                    <select
+                                            type="text"
+                                            id="paymentType"
+                                            class="form-control"
+                                            name="paymentType">
+                                    </select>
+                                    <div id="paymentTypeError" class="text-danger"></div>
+                                </div>
+                                <div class="col mb-0">
+                                    <label for="orderStatus" class="form-label">Статус заказа</label>
+                                    <select
+                                            type="text"
+                                            id="orderStatus"
+                                            class="form-control"
+                                            name="orderStatus">
+                                    </select>
+                                    <div id="orderStatusError" class="text-danger"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="save-payment-btn">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <hr class="line">
         <div class="card-footer d-flex justify-content-between">
             <a href="/product" class="btn btn-primary">Назад</a>
-            <button type="submit" class="btn btn-success" id="btn-save">Сохранить</button>
+            <button class="btn btn-success" id="btn-save-order">Сохранить</button>
         </div>
     </div>
 </div>

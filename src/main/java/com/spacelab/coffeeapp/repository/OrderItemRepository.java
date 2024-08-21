@@ -14,7 +14,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     List<OrderItem> findByOrderId(Long orderId);
 
-    // Методы для топ-4 продуктов за указанный период
+
     @Query("SELECT oi.product.id, COUNT(oi.id) as product_count " +
             "FROM OrderItem oi JOIN oi.order o " +
             "WHERE o.dateTimeOfCreate BETWEEN :startDate AND :endDate " +
@@ -23,7 +23,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<Object[]> findTop4Products(@Param("startDate") LocalDateTime startDate,
                                     @Param("endDate") LocalDateTime endDate);
 
-    // Метод для подсчета количества продаж продукта по месяцам
+
     @Query("SELECT FUNCTION('YEAR', o.dateTimeOfCreate) as year, " +
             "FUNCTION('MONTH', o.dateTimeOfCreate) as month, " +
             "COUNT(oi.id) as product_count " +

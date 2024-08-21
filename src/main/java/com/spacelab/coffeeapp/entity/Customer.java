@@ -24,9 +24,10 @@ public class Customer {
 
     @Column(columnDefinition="DATE")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
 
     private String address;
+
     private String phoneNumber;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer", cascade = CascadeType.ALL)

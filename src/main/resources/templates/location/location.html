@@ -11,16 +11,7 @@
     </div>
     <div class="card">
         <div class="card-header py-2 d-flex align-items-center">
-            <div class="d-flex align-items-center me-auto">
-                <label class="d-flex align-items-center gap-1">
-                    Показать:
-                    <select id="pageSize" class="form-control">
-                        <option value="5" selected>5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                    </select>
-                </label>
-            </div>
+
             <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
                 <div class="search-input-wrapper col-md-4">
                     <label class="d-flex align-items-center gap-2 w-100">
@@ -57,11 +48,22 @@
             </div>
         </div>
 
-        <div class="card-footer d-flex justify-content-center pb-0">
-            <nav>
-                <ul class="pagination" id="pagination"></ul>
+        <div class="card-footer d-flex justify-content-between align-items-center pb-0">
+            <label class="d-flex align-items-center gap-1" style="transform: translateY(-8px);">
+                Показать:
+                <select id="pageSize" class="form-control">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
             </nav>
         </div>
+
+
 
         <!-- Entity Modal -->
         <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
@@ -139,141 +141,124 @@
         </div>
     </div>
     <script>
-        function getCities() {
-            $.ajax({
-                url: '/location/cities',
-                type: 'GET',
-                success: function (response) {
-                    $.each(response, function (index, city) {
-                        $('#city').append('<option value="' + city.name + '">' + city.name + '</option>');
-                    });
-                },
-                error: function (error) {
-                    console.log(error);
-                }
-            });
-        }
-
         $(document).ready(function () {
-            getCities();
+            let currentPage = 0;
             let pageSize = parseInt($('#pageSize').val());
-            loadEntities(0, '', pageSize);
 
-            $('#search').on('keyup', function () {
-                const search = $(this).val();
-                loadEntities(0, search, pageSize);
-            });
+            getCities();
+            loadEntities(currentPage, '', pageSize);
+            initializeEventHandlers();
 
-            $('#pageSize').on('change', function () {
-                pageSize = parseInt($(this).val());
-                loadEntities(0, '', pageSize);
-            });
+            function initializeEventHandlers() {
+                setupSearchEvent();
+                setupPageSizeChangeEvent();
+                setupPaginationEvents();
+                setupEditEntityEvent();
+                setupSaveEntityEvent();
+                setupDeleteEntityEvent();
+                setupConfirmDeleteEvent();
+                setupCreateEntityEvent();
+            }
 
-            $(document).on('click', '.page-link', function (e) {
-                e.preventDefault();
-                const page = parseInt($(this).data('page'));
-                loadEntities(page, $('#search').val(), pageSize);
-            });
-
-            $(document).on('click', '.edit-entity-btn', function () {
-                const id = $(this).data('id');
-                $.ajax({
-                    url: `/location/${id}`,
-                    method: 'GET',
-                    success: function (entity) {
-                        $('#city').val(entity.city);
-                        $('#latitude').val(entity.latitude);
-                        $('#longitude').val(entity.longitude);
-                        $('#street').val(entity.street);
-                        $('#building').val(entity.building);
-                        $('#save-entity-btn').data('id', entity.id);
-                        clearEntitiesFormError();
-                    },
-                    error: function (err) {
-                        console.error('Ошибка получения данных сущности:', err);
-                    }
+            function setupSearchEvent() {
+                $('#search').on('keyup', function () {
+                    const search = $(this).val();
+                    loadEntities(0, search, pageSize);
                 });
-            });
+            }
 
-            $(document).on('click', '#save-entity-btn', function () {
-                const id = $(this).data('id');
-                const locationDto = {
-                    id: id,
-                    city: $('#city').val(),
-                    latitude: $('#latitude').val(),
-                    longitude: $('#longitude').val(),
-                    street: $('#street').val(),
-                    building: $('#building').val()
-                };
+            function setupPageSizeChangeEvent() {
+                $('#pageSize').on('change', function () {
+                    pageSize = parseInt($(this).val());
+                    loadEntities(0, '', pageSize);
+                });
+            }
 
-                if (id) {
+            function setupPaginationEvents() {
+                $(document).on('click', '.page-link', function (e) {
+                    e.preventDefault();
+                    currentPage = parseInt($(this).data('page'));
+                    loadEntities(currentPage, $('#search').val(), pageSize);
+                });
+            }
+
+            function setupEditEntityEvent() {
+                $(document).on('click', '.edit-entity-btn', function () {
+                    const id = $(this).data('id');
                     $.ajax({
                         url: `/location/${id}`,
-                        method: 'PUT',
-                        contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(locationDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                            resetForm();
+                        method: 'GET',
+                        success: function (entity) {
+                            populateEntityForm(entity);
                         },
                         error: function (err) {
-                            console.error('Ошибка обновления сущности:', err);
-                            validateEntitiesForm(err);
+                            console.error('Ошибка получения данных сущности:', err);
                         }
                     });
-                } else {
-                    locationDto.id = null;
-                    $.ajax({
-                        url: '/location/',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(locationDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                            resetForm();
-                        },
-                        error: function (err) {
-                            validateEntitiesForm(err);
-                            console.error('Ошибка создания сущности:', err);
-                        }
-                    });
-                }
-            });
+                });
+            }
 
-            $(document).on('click', '.delete-entity-btn', function () {
-                const id = $(this).data('id');
-                $('#confirm-delete-btn').data('id', id);
-            });
+            function setupSaveEntityEvent() {
+                $(document).on('click', '#save-entity-btn', function () {
+                    const id = $(this).data('id');
+                    const locationDto = getEntityFormData();
 
-            $(document).on('click', '#confirm-delete-btn', function () {
-                const id = $(this).data('id');
-                $.ajax({
-                    url: `/location/${id}`,
-                    method: 'DELETE',
-                    success: function () {
-                        $('#deleteConfirmModal').modal('hide');
-                        loadEntities(0, $('#search').val(), $('#pageSize').val());
-                        $('#deleteConfirmModal').removeClass('show');
-                        $('.modal-backdrop').remove();
-                    },
-                    error: function (err) {
-                        console.error('Ошибка удаления сущности:', err);
+                    if (id) {
+                        updateEntity(id, locationDto);
+                    } else {
+                        createEntity(locationDto);
                     }
                 });
-            });
+            }
 
-            $(document).on('click', '#createEntity', function () {
-                resetForm();
-                clearEntitiesFormError();
-            });
+            function setupDeleteEntityEvent() {
+                $(document).on('click', '.delete-entity-btn', function () {
+                    const id = $(this).data('id');
+                    $('#confirm-delete-btn').data('id', id);
+                });
+            }
 
-            function loadEntities(page, search, pageSize) {
+            function setupConfirmDeleteEvent() {
+                $(document).on('click', '#confirm-delete-btn', function () {
+                    const id = $(this).data('id');
+                    $.ajax({
+                        url: `/location/${id}`,
+                        method: 'DELETE',
+                        success: function () {
+                            $('#deleteConfirmModal').modal('hide');
+                            loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                            removeModalBackdrop();
+                        },
+                        error: function (err) {
+                            console.error('Ошибка удаления сущности:', err);
+                        }
+                    });
+                });
+            }
+
+            function setupCreateEntityEvent() {
+                $(document).on('click', '#createEntity', function () {
+                    resetForm();
+                    clearEntitiesFormError();
+                });
+            }
+
+            function getCities() {
+                $.ajax({
+                    url: '/location/cities',
+                    type: 'GET',
+                    success: function (response) {
+                        $.each(response, function (index, city) {
+                            $('#city').append('<option value="' + city.name + '">' + city.name + '</option>');
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            function loadEntities(page = 0, search = '', pageSize = 5) {
                 $.ajax({
                     url: '/location/getAll',
                     method: 'GET',
@@ -283,10 +268,8 @@
                         search: search
                     },
                     success: function (response) {
-                        const locations = response.content;
-                        const totalPages = response.totalPages;
-                        renderEntitiesTable(locations);
-                        renderPagination(page, totalPages);
+                        renderEntitiesTable(response.content);
+                        setupPagination(response.totalPages, page);
                     },
                     error: function (err) {
                         console.error('Ошибка загрузки сущностей:', err);
@@ -297,10 +280,12 @@
             function renderEntitiesTable(locations) {
                 const tableBody = $('#table-body');
                 tableBody.empty();
-                console.log(locations);
 
-                locations.forEach(location => {
-                    const row = `<tr>
+                if (locations.length === 0) {
+                    tableBody.append('<tr><td colspan="7" class="text-center">Нет данных</td></tr>');
+                } else {
+                    locations.forEach(location => {
+                        const row = `<tr>
                         <td class="text-center">${location.id}</td>
                         <td class="text-center">${location.city}</td>
                         <td class="text-center">${location.latitude}</td>
@@ -316,33 +301,131 @@
                             </button>
                         </td>
                     </tr>`;
-                    tableBody.append(row);
-                });
-
+                        tableBody.append(row);
+                    });
+                }
             }
 
-            function renderPagination(currentPage, totalPages) {
-                const pagination = $('#pagination');
-                pagination.empty();
+            function setupPagination(totalPages, currentPage) {
+                let paginationItems = '';
 
-                if (totalPages > 1) {
-                    const prevPage = currentPage > 0 ? currentPage - 1 : 0;
-                    const nextPage = currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1;
-
-                    pagination.append(`<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${prevPage}">Previous</a>
-                </li>`);
-
-                    for (let i = 0; i < totalPages; i++) {
-                        pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
-                    </li>`);
-                    }
-
-                    pagination.append(`<li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${nextPage}">Next</a>
-                </li>`);
+                // First page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                 }
+
+                // Previous page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                }
+
+                // Pagination items
+                if (currentPage > 1) {
+                    paginationItems += createPaginationItem(0, '1');
+                    if (currentPage > 2) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                }
+
+                for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    paginationItems += createPaginationItem(i, i + 1, '', i === currentPage);
+                }
+
+                if (currentPage < totalPages - 2) {
+                    if (currentPage < totalPages - 3) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                    paginationItems += createPaginationItem(totalPages - 1, totalPages);
+                }
+
+                // Next page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                }
+
+                // Last page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                }
+
+                $('#pagination').html(`<ul class="pagination justify-content-center">${paginationItems}</ul>`);
+            }
+
+            function createPaginationItem(page, text, ariaLabel = '', isActive = false) {
+                return `<li class="page-item ${isActive ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${page}" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</a>
+                    </li>`;
+            }
+
+            function createDisabledPaginationItem(text, ariaLabel = '') {
+                return `<li class="page-item disabled">
+                        <span class="page-link" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</span>
+                    </li>`;
+            }
+
+            function populateEntityForm(entity) {
+                $('#city').val(entity.city);
+                $('#latitude').val(entity.latitude);
+                $('#longitude').val(entity.longitude);
+                $('#street').val(entity.street);
+                $('#building').val(entity.building);
+                $('#save-entity-btn').data('id', entity.id);
+                clearEntitiesFormError();
+            }
+
+            function getEntityFormData() {
+                return {
+                    id: $('#save-entity-btn').data('id'),
+                    city: $('#city').val(),
+                    latitude: $('#latitude').val(),
+                    longitude: $('#longitude').val(),
+                    street: $('#street').val(),
+                    building: $('#building').val()
+                };
+            }
+
+            function updateEntity(id, locationDto) {
+                $.ajax({
+                    url: `/location/${id}`,
+                    method: 'PUT',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(locationDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), pageSize);
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка обновления сущности:', err);
+                        validateEntitiesForm(err);
+                    }
+                });
+            }
+
+            function createEntity(locationDto) {
+                $.ajax({
+                    url: '/location/',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(locationDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), pageSize);
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка создания сущности:', err);
+                        validateEntitiesForm(err);
+                    }
+                });
             }
 
             function resetForm() {
@@ -367,12 +450,16 @@
                     });
                 }
             }
+
+            function closeModal() {
+                $('#entityModal').modal('hide');
+                $('.modal-backdrop').remove();
+            }
         });
     </script>
 
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
-
     <script th:replace="location/scripts::scripts"></script>
 </div>
 </body>

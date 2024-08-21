@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,14 +43,14 @@ public class CategoryServiceImp implements CategoryService {
     }
 
     @Override
-    public Category  getCategory(Long id) {
+    public Optional<Category> getCategory(Long id) {
         log.info("Get category by id: {}", id);
-        return categoryRepository.findById(id).get();
+        return categoryRepository.findById(id);
     }
 
     @Override
     public CategoryDto getCategoryDto(Long id) {
-        return categoryMapper.toDto(getCategory(id));
+        return categoryMapper.toDto(getCategory(id).get());
     }
 
     @Override

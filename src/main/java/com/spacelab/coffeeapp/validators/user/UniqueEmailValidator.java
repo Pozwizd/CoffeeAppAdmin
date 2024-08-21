@@ -1,4 +1,4 @@
-package com.spacelab.coffeeapp.Validators.user;
+package com.spacelab.coffeeapp.validators.user;
 
 
 import com.spacelab.coffeeapp.dto.UserDto;

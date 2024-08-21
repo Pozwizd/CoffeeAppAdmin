@@ -1,18 +1,13 @@
 package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.dto.TopProduct;
-import com.spacelab.coffeeapp.repository.OrderItemRepository;
 import com.spacelab.coffeeapp.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -85,8 +80,8 @@ public class StatisticsController {
 
     @GetMapping("/customers/active/last-month")
     @ResponseBody
-    public Double getActiveCustomersLastMonth() {
-        return customerService.calculateActiveCustomersLastMonth();
+    public Long getActiveCustomersLastMonth() {
+        return customerService.getCountOfCustomersWithOrdersLastWeek();
     }
 
     @GetMapping("/customers/changes/last-week")
@@ -97,10 +92,10 @@ public class StatisticsController {
 
     @GetMapping("/sales/chart")
     @ResponseBody
-    public Map<String, int[]> getSalesChartData() {
-        Map<String, int[]> data = productService.getTopProductsSalesLastMonths(30);
-        return data;
+    public Map<String, List<Integer>> getSalesChartData(@RequestParam int quantity, @RequestParam int months) {
+        return productService.findTopProductsSalesByMonth(quantity, months);
     }
+
 
     @GetMapping("/products/top")
     @ResponseBody

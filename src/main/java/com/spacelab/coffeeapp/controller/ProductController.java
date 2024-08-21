@@ -23,6 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Controller
@@ -31,9 +32,7 @@ import java.util.stream.Collectors;
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductMapper productMapper;
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
 
     @ModelAttribute
     public void addAttributes(Model model) {
@@ -51,98 +50,64 @@ public class ProductController {
     @GetMapping("/getAll")
     @ResponseBody
     public Page<ProductDto> getProductsDtoWithPagination(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "") String search,
-                                        @RequestParam(defaultValue = "5") Integer size) {
+                                                         @RequestParam(defaultValue = "") String search,
+                                                         @RequestParam(defaultValue = "5") Integer size) {
         return productService.findProductsDtoByRequest(page, size, search);
     }
 
-    @GetMapping("/getByCategory/{categoryId}")
-    @ResponseBody
-    public List<ProductDto> getProductsByCategory( @PathVariable String categoryId) {
-        List<ProductDto> products = productMapper.toDtoList(productService.getProductsByCategory(Long.valueOf(categoryId)));
-        return products;
-    }
-
-
-
-    @GetMapping("/{id}")
-    public ModelAndView getEntity(@PathVariable String id, HttpSession session,  Model model) {
-        ProductDto product = (ProductDto) session.getAttribute("product");
-
-        session.removeAttribute("attributeProduct");
-        model.addAttribute("statusList", Product.Status.values());
-        model.addAttribute("listCategories", categoryService.getAllCategory()
-                .stream().map(categoryMapper::toDto).toList());
-
-        if (product == null){
-            if (id.equals("create")) {
-                ProductDto productDto = new ProductDto();
-                model.addAttribute("product",
-                        productDto);
-                model.addAttribute("productId", "create");
-                session.setAttribute("product", productDto);
-            } else {
-                ProductDto productDto = productService.getProductDto(Long.valueOf(id));
-                session.setAttribute("product", productDto );
-                model.addAttribute("productId", productDto.getId());
-                model.addAttribute("product",
-                        productDto);
-            }
-        } else {
-            session.setAttribute("product", product);
-            model.addAttribute("product", product);
-        }
-        return new ModelAndView("products/productItem");
-
-    }
-
-    @PostMapping("/{id}")
-    public ModelAndView updateEntity(@PathVariable String id,
-                                     HttpSession session,
-                                     @Valid @ModelAttribute("product") ProductDto productDto,
-                                     BindingResult bindingResult,
-                                     Model model) {
-
-        ProductDto productFromSession = (ProductDto) session.getAttribute("product");
-
-
-        // Собираем ошибки в новую коллекцию, исключая ошибки для поля 'id'
-        List<FieldError> filteredErrors = bindingResult.getFieldErrors().stream()
-                .filter(error -> !error.getField().equals("id"))
-                .collect(Collectors.toList());
-
-
-        if (filteredErrors.size() > 0) {
-            productDto.setAttributeProducts(productFromSession.getAttributeProducts());
-            model.addAttribute("product", productDto);
-            model.addAttribute("productId", id);
-            model.addAttribute("statusList", Product.Status.values());
-            model.addAttribute("listCategories", categoryService.getAllCategory()
-                    .stream().map(categoryMapper::toDto).toList());
-            session.setAttribute("product", productDto);
-            return new ModelAndView("products/productItem");
-        }
-
-        if (id.equals("create") && id == null) {
-            productService.createProductFromDto(productDto);
-        } else {
-            productFromSession.setName(productDto.getName());
-            productFromSession.setDescription(productDto.getDescription());
-            productFromSession.setStatus(productDto.getStatus());
-            productFromSession.setCategory(productDto.getCategory());
-
-            productService.updateProductFromDto(Long.valueOf(id),productFromSession);
-        }
-        return new ModelAndView("redirect:/product");
-    }
-
-
-
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<?> deleteEntity(@PathVariable Long id) {
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok().build();
     }
+
+
+    @GetMapping("/{id}")
+    @ResponseBody
+    public ModelAndView getEditProductPage(@PathVariable Long id, Model model) {
+        model.addAttribute("product", productService.getProductDto(id));
+        List<Product.Status> status = List.of(Product.Status.values());
+        model.addAttribute("statusList", status);
+        model.addAttribute("listCategories", categoryService.getAllCategoryDto());
+        return new ModelAndView("products/productItem");
+    }
+
+    @GetMapping("/create")
+    public ModelAndView getCreateProductPage(Model model) {
+        model.addAttribute("product", new ProductDto());
+        List<Product.Status> status = List.of(Product.Status.values());
+        model.addAttribute("statusList", status);
+        model.addAttribute("listCategories", categoryService.getAllCategoryDto());
+        return new ModelAndView("products/productItem");
+    }
+
+    @PostMapping("/{id}")
+    public ModelAndView updateProduct(@PathVariable Long id, @Valid @ModelAttribute("product") ProductDto productDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            bindingResult.getAllErrors().forEach(error -> System.out.println(error.toString()));
+            return new ModelAndView("products/productItem");
+        }
+
+        productService.updateProductFromDto(id, productDto);
+        return new ModelAndView("redirect:/product/");
+    }
+
+    @PostMapping("/create")
+    public ModelAndView createProduct(@Valid @ModelAttribute("product") ProductDto productDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return new ModelAndView("products/productItem");
+        }
+        productService.createProductFromDto(productDto);
+        return new ModelAndView("redirect:/product/");
+    }
+
+
+    @GetMapping("/getByCategory/{id}")
+    @ResponseBody
+    public List<ProductDto> getProductsByCategoryId(@PathVariable Long id) {
+        return productService.findByCategoryId(id);
+    }
+
 
 }

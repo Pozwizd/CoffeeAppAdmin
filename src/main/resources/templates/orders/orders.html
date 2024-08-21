@@ -10,15 +10,14 @@
     </div>
     <div class="card">
         <div class="card-header py-2 d-flex align-items-center">
-            <div class="d-flex align-items-center me-auto">
-                <label class="d-flex align-items-center gap-1">
-                    Показать:
-                    <select id="pageSize" class="form-control">
-                        <option value="5" selected>5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                    </select>
-                </label>
+
+            <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
+                <div class="search-input-wrapper col-md-4">
+                    <label class="d-flex align-items-center gap-2 w-100">
+                        Поиск:
+                        <input type="text" id="search" class="form-control" placeholder="Поиск...">
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -29,8 +28,10 @@
                         <thead>
                         <tr id="table-head">
                             <td class="text-center">ID</td>
+                            <td class="text-center">Имя</td>
+                            <td class="text-center">Номер телефона</td>
                             <td class="text-center">Дата создания</td>
-                            <td class="text-center">Дата обновления</td>
+                            <td class="text-center">Сумма заказа</td>
                             <td class="text-center">Дата готовности</td>
                             <td class="text-center">Статус</td>
                             <td class="text-center"></td>
@@ -42,11 +43,21 @@
             </div>
         </div>
 
-        <div class="card-footer d-flex justify-content-center pb-0">
-            <nav>
-                <ul class="pagination" id="pagination"></ul>
+        <div class="card-footer d-flex justify-content-between align-items-center pb-0">
+            <label class="d-flex align-items-center gap-1" style="transform: translateY(-8px);">
+                Показать:
+                <select id="pageSize" class="form-control">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
             </nav>
         </div>
+
 
         <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
@@ -69,25 +80,80 @@
     </div>
     <script>
         $(document).ready(function () {
-            let pageSize = parseInt($('#pageSize').val());
-            loadEntities(0, pageSize);
             let currentPage = 0;
-            $('#pageSize').on('change', function () {
-                pageSize = parseInt($(this).val());
-                loadEntities(currentPage, pageSize);
-            });
-            function loadEntities(page, pageSize) {
+            let pageSize = parseInt($('#pageSize').val());
+
+
+            loadEntities(currentPage, pageSize);
+            initializeEventHandlers();
+
+            function initializeEventHandlers() {
+                $('#search').on('keyup', function () {
+                    const search = $(this).val();
+                    loadEntities(currentPage, pageSize, search);
+                });
+
+                setupPageSizeChangeEvent();
+                setupPaginationEvents();
+                setupDeleteEntityEvent();
+                setupConfirmDeleteEvent();
+            }
+
+            function setupPageSizeChangeEvent() {
+                $('#pageSize').on('change', function () {
+                    pageSize = parseInt($(this).val());
+                    loadEntities(currentPage, pageSize);
+                });
+            }
+
+            function setupPaginationEvents() {
+                $(document).on('click', '.page-link', function (e) {
+                    e.preventDefault();
+                    currentPage = parseInt($(this).data('page'));
+                    const search = $('#search').val();
+                    loadEntities(currentPage, pageSize, search);
+                });
+            }
+
+            function setupDeleteEntityEvent() {
+                $(document).on('click', '.delete-entity-btn', function () {
+                    const id = $(this).data('id');
+                    $('#confirm-delete-btn').data('id', id);
+                });
+            }
+
+            function setupConfirmDeleteEvent() {
+                $(document).on('click', '#confirm-delete-btn', function () {
+                    const id = $(this).data('id');
+                    $.ajax({
+                        url: `/order/${id}`,
+                        method: 'DELETE',
+                        success: function () {
+                            $('#deleteConfirmModal').modal('hide');
+                            const search = $('#search').val();
+                            loadEntities(currentPage, pageSize, search);
+                            removeModalBackdrop();
+                        },
+                        error: function (err) {
+                            console.error('Ошибка удаления сущности:', err);
+                        }
+                    });
+                });
+            }
+
+            function loadEntities(page, pageSize, search = '') {
                 $.ajax({
                     url: '/order/getAll',
                     method: 'GET',
                     data: {
                         page: page,
                         size: pageSize,
+                        search: search
                     },
                     success: function (response) {
-                        const locations = response.content;
+                        const orders = response.content;
                         const totalPages = response.totalPages;
-                        renderEntitiesTable(locations);
+                        renderEntitiesTable(orders);
                         renderPagination(page, totalPages);
                     },
                     error: function (err) {
@@ -96,44 +162,32 @@
                 });
             }
 
-            function renderEntitiesTable(order) {
+            function renderEntitiesTable(orders) {
                 const tableBody = $('#table-body');
                 tableBody.empty();
 
-                order.forEach(order => {
-                    // Функция для преобразования массива в строку формата ISO 8601 и форматирования даты и времени
-                    function formatDateTime(dateTimeArray) {
-                        const [year, month, day, hour, minute, second] = dateTimeArray;
-                        const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
-                        return new Date(dateTimeString).toLocaleString('ru-RU', {
-                            year: 'numeric',
-                            month: 'numeric',
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            second: 'numeric'
-                        });
-                    }
+                orders.forEach(order => {
+                    const dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
+                    const dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
 
-                    let dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
-                    let dateTimeOfUpdate = formatDateTime(order.dateTimeOfUpdate);
-                    let dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
-
-                    const row = `<tr>
-                        <td class="text-center">${order.id}</td>
-                        <td class="text-center">${dateTimeOfCreate}</td>
-                        <td class="text-center">${dateTimeOfUpdate}</td>
-                        <td class="text-center">${dateTimeOfReady}</td>
-                        <td class="text-center">${order.status}</td>
-                        <td class="text-center">
-                            <a class="btn btn-sm btn-primary edit-entity-btn" methods="GET" href="/order/${order.id}">
-                                <i class="ti ti-edit"></i>
-                            </a>
-                            <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${order.id}" data-bs-target="#deleteConfirmModal">
-                                <i class="ti ti-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
+                    const row = `
+                <tr>
+                    <td class="text-center">${order.id}</td>
+                    <td class="text-center">${order.customerDto.name}</td>
+                    <td class="text-center">${order.customerDto.phoneNumber}</td>
+                    <td class="text-center">${dateTimeOfCreate}</td>
+                    <td class="text-center">${order.totalAmount}</td>
+                    <td class="text-center">${dateTimeOfReady}</td>
+                    <td class="text-center">${order.status}</td>
+                    <td class="text-center">
+                        <a class="btn btn-sm btn-primary edit-entity-btn" href="/order/${order.id}">
+                            <i class="ti ti-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${order.id}" data-bs-target="#deleteConfirmModal">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
                     tableBody.append(row);
                 });
             }
@@ -143,59 +197,85 @@
                 pagination.empty();
 
                 if (totalPages > 1) {
-                    const prevPage = currentPage > 0 ? currentPage - 1 : 0;
-                    const nextPage = currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1;
+                    let paginationItems = '';
 
-                    pagination.append(`<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${prevPage}">Previous</a>
-                    </li>`);
-
-                    for (let i = 0; i < totalPages; i++) {
-                        pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
-                        </li>`);
+                    if (currentPage > 0) {
+                        paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                    } else {
+                        paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                     }
 
-                    pagination.append(`<li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${nextPage}">Next</a>
-                    </li>`);
+                    if (currentPage > 0) {
+                        paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                    } else {
+                        paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                    }
+
+
+                    if (currentPage > 1) {
+                        paginationItems += createPaginationItem(0, '1');
+                        if (currentPage > 2) {
+                            paginationItems += createDisabledPaginationItem('...');
+                        }
+                    }
+
+                    for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                        paginationItems += createPaginationItem(i, i + 1, '', i === currentPage);
+                    }
+
+                    if (currentPage < totalPages - 2) {
+                        if (currentPage < totalPages - 3) {
+                            paginationItems += createDisabledPaginationItem('...');
+                        }
+                        paginationItems += createPaginationItem(totalPages - 1, totalPages);
+                    }
+
+                    if (currentPage < totalPages - 1) {
+                        paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                    } else {
+                        paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                    }
+
+                    if (currentPage < totalPages - 1) {
+                        paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                    } else {
+                        paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                    }
+
+                    pagination.html(paginationItems);
                 }
             }
 
-            $(document).on('click', '.page-link', function (e) {
-                e.preventDefault();
-                currentPage = parseInt($(this).data('page'));
-                loadEntities(currentPage, pageSize);
-            });
+            function createPaginationItem(page, text, className = '', isActive = false) {
+                return `<li class="page-item ${className} ${isActive ? 'active' : ''}"><a class="page-link" href="#" data-page="${page}">${text}</a></li>`;
+            }
 
-            $(document).on('click', '.delete-entity-btn', function () {
-                const id = $(this).data('id');
-                $('#confirm-delete-btn').data('id', id);
-            });
+            function createDisabledPaginationItem(text, className = '') {
+                return `<li class="page-item disabled ${className}"><a class="page-link">${text}</a></li>`;
+            }
 
-            // Навешиваем на кнопку "Удалить" обработчик события "click"
-            $(document).on('click', '#confirm-delete-btn', function () {
-                const id = $(this).data('id');
-                $.ajax({
-                    url: `/order/${id}`,
-                    method: 'DELETE',
-                    success: function () {
-                        $('#deleteConfirmModal').modal('hide');
-                        loadEntities(currentPage, pageSize);
-                        $('#deleteConfirmModal').removeClass('show');
-                        $('.modal-backdrop').remove();
-                    },
-                    error: function (err) {
-                        console.error('Ошибка удаления сущности:', err);
-                    }
+            function formatDateTime(dateTimeArray) {
+                const [year, month, day, hour, minute, second] = dateTimeArray;
+                const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+                return new Date(dateTimeString).toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric'
                 });
-            });
+            }
+
+            function removeModalBackdrop() {
+                $('#deleteConfirmModal').removeClass('show');
+                $('.modal-backdrop').remove();
+            }
         });
-
-
-
-
     </script>
+
+
+
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 </div>
 </body>

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface UserService {
@@ -29,7 +30,7 @@ public interface UserService {
 
     Page<User> findUsersByRequest(int page, int pageSize, String search);
 
-    User getUserByEmail(String name);
+    Optional<User> getUserByEmail(String name);
 
     Boolean existsByEmail(String email);
 

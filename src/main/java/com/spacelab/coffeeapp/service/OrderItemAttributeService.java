@@ -1,5 +1,7 @@
 package com.spacelab.coffeeapp.service;
 
+import com.spacelab.coffeeapp.dto.OrderItemAttributeDto;
+import com.spacelab.coffeeapp.entity.OrderItem;
 import com.spacelab.coffeeapp.entity.OrderItemAttribute;
 import org.springframework.stereotype.Service;
 
@@ -7,9 +9,9 @@ import org.springframework.stereotype.Service;
 public interface OrderItemAttributeService {
 
 
-    void saveOrderItemAttribute(OrderItemAttribute orderItemAttribute);
+    OrderItemAttribute saveOrderItemAttribute(OrderItemAttribute orderItemAttribute);
 
-    void updateOrderItemAttribute(OrderItemAttribute orderItemAttribute);
+    OrderItemAttribute updateOrderItemAttribute(OrderItemAttribute orderItemAttribute);
 
     void deleteOrderItemAttribute(Long id);
 
@@ -20,4 +22,6 @@ public interface OrderItemAttributeService {
     Iterable<OrderItemAttribute> getAllOrderItemAttributesByOrderItemId(Long orderItemId);
 
     void deleteAllOrderItemAttributesByOrderItemId(Long orderItemId);
+
+    OrderItemAttribute saveOrderItemAttribute(OrderItemAttributeDto orderItemAttributeDto, OrderItem orderItem);
 }

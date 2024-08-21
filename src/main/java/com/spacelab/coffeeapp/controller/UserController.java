@@ -2,9 +2,7 @@ package com.spacelab.coffeeapp.controller;
 
 
 import com.spacelab.coffeeapp.dto.UserDto;
-import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
-import com.spacelab.coffeeapp.mapper.UserMapper;
 import com.spacelab.coffeeapp.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -35,8 +33,8 @@ public class UserController {
     }
 
     @GetMapping("/roles")
-    public @ResponseBody List<Role> getRole() {
-        return List.of(Role.ADMIN, Role.MANAGER);
+    public @ResponseBody List<User.Role> getRole() {
+        return List.of(User.Role.ADMIN, User.Role.MANAGER);
     }
 
 

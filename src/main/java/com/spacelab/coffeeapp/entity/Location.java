@@ -29,6 +29,9 @@ public class Location {
     private String street;
     private String building;
 
+
+
     private String phoneNumber;
+
 
 }

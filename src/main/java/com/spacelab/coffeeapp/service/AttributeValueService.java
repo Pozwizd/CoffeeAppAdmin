@@ -5,6 +5,7 @@ import com.spacelab.coffeeapp.entity.AttributeValue;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface AttributeValueService {
@@ -13,7 +14,7 @@ public interface AttributeValueService {
 
     void saveAttributeValueFromDto(AttributeValueDto attributeValueDto);
 
-    AttributeValue getAttributeValue(Long id);
+    Optional<AttributeValue> getAttributeValue(Long id);
 
     AttributeValueDto getAttributeValueDto(Long id);
 

@@ -1,10 +1,8 @@
 package com.spacelab.coffeeapp.mapper;
 
-import com.spacelab.coffeeapp.dto.LocationDto;
 import com.spacelab.coffeeapp.dto.UserDto;
-import com.spacelab.coffeeapp.entity.Location;
-import com.spacelab.coffeeapp.entity.Role;
 import com.spacelab.coffeeapp.entity.User;
+import com.spacelab.coffeeapp.entity.User.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;

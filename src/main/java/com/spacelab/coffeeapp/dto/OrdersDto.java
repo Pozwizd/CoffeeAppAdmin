@@ -23,12 +23,11 @@ public class OrdersDto implements Serializable {
     @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
     LocalDateTime dateTimeOfCreate;
     @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
-    LocalDateTime dateTimeOfUpdate;
-    @DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
     LocalDateTime dateTimeOfReady;
 
     DeliveryDto deliveryDto;
     List<OrderItemDto> orderItemsDto;
+    CustomerDto customerDto;
 
     Order.Payment payment;
     Order.OrderStatus status;

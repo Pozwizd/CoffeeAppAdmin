@@ -1,7 +1,9 @@
 package com.spacelab.coffeeapp.service.Imp;
 
+import com.spacelab.coffeeapp.dto.DeliveryDto;
 import com.spacelab.coffeeapp.entity.Delivery;
 import com.spacelab.coffeeapp.repository.DeliveryRepository;
+import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.DeliveryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,14 +20,55 @@ import java.util.List;
 public class DeliveryServiceImp implements DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
+    private final CityService cityService;
 
 
 
     @Override
-    public void saveDelivery(Delivery delivery) {
-        deliveryRepository.save(delivery);
-        log.info("Save delivery: {}", delivery);
+    public Delivery saveDelivery(DeliveryDto deliveryDto) {
+        if (deliveryDto.getId() != null) {
+            // Обновление существующей доставки
+            return deliveryRepository.findById(deliveryDto.getId())
+                    .map(existingDelivery -> updateDelivery(existingDelivery, deliveryDto))
+                    .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryDto.getId()));
+        } else {
+            // Создание новой доставки
+            Delivery newDelivery = createDelivery(deliveryDto);
+            return saveDelivery(newDelivery);
+        }
     }
+
+    private Delivery updateDelivery(Delivery existingDelivery, DeliveryDto deliveryDto) {
+        applyDeliveryDtoToDelivery(existingDelivery, deliveryDto);
+        log.info("Updated delivery: {}", existingDelivery);
+        return saveDelivery(existingDelivery);
+    }
+
+    private Delivery createDelivery(DeliveryDto deliveryDto) {
+        Delivery newDelivery = new Delivery();
+        applyDeliveryDtoToDelivery(newDelivery, deliveryDto);
+        log.info("Created new delivery: {}", newDelivery);
+        return newDelivery;
+    }
+
+    private void applyDeliveryDtoToDelivery(Delivery delivery, DeliveryDto deliveryDto) {
+        delivery.setName(deliveryDto.getName());
+        delivery.setPhoneNumber(deliveryDto.getPhoneNumber());
+        delivery.setStreet(deliveryDto.getStreet());
+        delivery.setBuilding(deliveryDto.getBuilding());
+        delivery.setApartment(deliveryDto.getApartment());
+        delivery.setDeliveryTime(deliveryDto.getDeliveryTime());
+        delivery.setChangeAmount(deliveryDto.getChangeAmount());
+        delivery.setStatus(deliveryDto.getStatus());
+        delivery.setCity(cityService.getCity(deliveryDto.getCityId()));
+    }
+
+    @Override
+    public Delivery saveDelivery(Delivery delivery) {
+        log.info("Save delivery: {}", delivery);
+        return deliveryRepository.save(delivery);
+    }
+
 
     @Override
     public Delivery getDelivery(Long id) {
@@ -36,24 +79,6 @@ public class DeliveryServiceImp implements DeliveryService {
     @Override
     public List<Delivery> getAllDeliveries() {
         return deliveryRepository.findAll();
-    }
-
-    @Override
-    public void updateDelivery(Long id, Delivery delivery) {
-        deliveryRepository.findById(id).map(delivery1 -> {
-            delivery1.setName(delivery.getName());
-            delivery1.setPhoneNumber(delivery.getPhoneNumber());
-            delivery1.setStreet(delivery.getStreet());
-            delivery1.setBuilding(delivery.getBuilding());
-            delivery1.setApartment(delivery.getApartment());
-            delivery1.setDeliveryTime(delivery.getDeliveryTime());
-            delivery1.setChangeAmount(delivery.getChangeAmount());
-            delivery1.setStatus(delivery.getStatus());
-            delivery1.setCity(delivery.getCity());
-            deliveryRepository.save(delivery);
-            log.info("Update delivery: {}", delivery);
-            return delivery;
-        }).orElseThrow(() -> new RuntimeException("Delivery not found"));
     }
 
     @Override

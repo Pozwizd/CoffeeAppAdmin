@@ -13,24 +13,25 @@ public interface OrderService {
     public void saveOrder(Order order);
 
     public Order getOrder(Long id);
-    public OrdersDto getOrderDto(Long id);
 
+    public OrdersDto getOrderDto(Long id);
 
     public List<Order> getAllOrders();
 
     public void updateOrder(Long id, Order order);
 
+    public void updateOrderFromDto(Long id, OrdersDto order);
+
     public void deleteOrder(Order order);
 
     public void deleteOrder(Long id);
 
+    Page<Order> findAllOrders(int page, int pageSize, String search);
 
-    Page<Order> findAllOrders(int page, int pageSize);
 
     Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize);
 
-    public Page<OrdersDto> findOrdersByRequest(int page, int pageSize, String search);
-
+    Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize, String search);
 
     Integer countAllOrders();
 
@@ -39,4 +40,8 @@ public interface OrderService {
     Long calculateTotalSales();
 
     Long calculateTodaySales();
+
+    Order saveOrderFromDto(OrdersDto ordersDto);
+
+    List<OrdersDto> getLastOrdersForStatistics();
 }

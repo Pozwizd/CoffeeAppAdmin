@@ -175,59 +175,72 @@
 
             <script>
                 $(document).ready(function() {
+                    // Параметры для запроса
+                    const quantity = 5;  // Количество топовых продуктов
+                    const months = 6;    // Количество месяцев для отображения
+
                     $.ajax({
                         url: '/sales/chart',
                         type: 'GET',
-                        success: function (data) {
-                            console.log(data);
+                        data: {
+                            quantity: quantity,
+                            months: months
                         },
-                        error: function (error) {
-                            console.error('Error fetching sales chart:', error);
+                        success: function(data) {
+                            console.log(data);
 
+                            // Генерация меток для графика (названия месяцев)
+                            const labels = [];
+                            const currentMonth = new Date().getMonth() + 1; // Текущий месяц (0-based индекс)
+                            for (let i = months - 1; i >= 0; i--) {
+                                const date = new Date();
+                                date.setMonth(currentMonth - i - 1);  // Вычисляем месяц
+                                labels.push(date.toLocaleString('default', { month: 'short' })); // Короткое название месяца
+                            }
+
+                            // Создание datasets для каждого продукта
+                            const datasets = [];
+                            Object.keys(data).forEach(function(productName) {
+                                datasets.push({
+                                    label: productName,
+                                    data: data[productName],  // Данные для каждого продукта
+                                    borderColor: getRandomColor(),  // Случайный цвет для графика
+                                    borderWidth: 1
+                                });
+                            });
+
+                            // Обновление графика с новыми данными
+                            const salesCtx = document.getElementById('salesChart').getContext('2d');
+                            const salesChart = new Chart(salesCtx, {
+                                type: 'line',
+                                data: {
+                                    labels: labels,  // Метки (названия месяцев)
+                                    datasets: datasets  // Наборы данных для графика
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
+                        },
+                        error: function(error) {
+                            console.error('Error fetching sales chart:', error);
                         }
                     });
                 });
 
-                const salesCtx = document.getElementById('salesChart').getContext('2d');
-                const salesChart = new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                        datasets: [
-                            {
-                                label: 'Американо',
-                                data: [12, 19, 3, 5, 2, 3],
-                                borderColor: 'yellow',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Эспрессо',
-                                data: [2, 3, 20, 5, 1, 4],
-                                borderColor: 'green',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Капучино',
-                                data: [3, 10, 13, 15, 22, 30],
-                                borderColor: 'cyan',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Латте',
-                                data: [5, 2, 3, 10, 5, 3],
-                                borderColor: 'white',
-                                borderWidth: 1
-                            }
-                        ]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
+                // Функция для генерации случайного цвета для графика
+                function getRandomColor() {
+                    const letters = '0123456789ABCDEF';
+                    let color = '#';
+                    for (let i = 0; i < 6; i++) {
+                        color += letters[Math.floor(Math.random() * 16)];
                     }
-                });
+                    return color;
+                }
 
                 $(document).ready(function() {
                     $.ajax({
@@ -236,9 +249,7 @@
                         success: function(data) {
                             const labels = data.map(product => product.name);
                             const percentages = data.map(product => product.percentage);
-
-                            const backgroundColors = ['yellow', 'green', 'cyan'];
-
+                            const backgroundColors = labels.map(() => getRandomColor());
                             const ctx = document.getElementById('topProductsChart').getContext('2d');
                             const topProductsChart = new Chart(ctx, {
                                 type: 'doughnut',
@@ -279,6 +290,7 @@
                         }
                     });
                 });
+                
             </script>
         </div>
 
@@ -291,58 +303,79 @@
             <div class="card p-3">
                 <div class="card-body">
                     <h5 class="card-title">Последние заказы</h5>
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">Статус</th>
-                            <th scope="col">Имя</th>
-                            <th scope="col">Дата заказа</th>
-                            <th scope="col">Номер телефона</th>
-                            <th scope="col">Локация</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>Готов</td>
-                            <td>Jerry Mattedi</td>
-                            <td>19 May, 2021 : 10:10 AM</td>
-                            <td>251-661-5362</td>
-                            <td>New York</td>
-                        </tr>
-                        <tr>
-                            <td>Отменен</td>
-                            <td>Ellianora Vasilov</td>
-                            <td>18 May, 2021 : 3:12 PM</td>
-                            <td>171-534-1262</td>
-                            <td>Ontario</td>
-                        </tr>
-                        <tr>
-                            <td>В процессе</td>
-                            <td>Alvis Daen</td>
-                            <td>17 May, 2021 : 2:15 PM</td>
-                            <td>974-661-5110</td>
-                            <td>Milan</td>
-                        </tr>
-                        <tr>
-                            <td>Доставляется</td>
-                            <td>Lissa Shipsey</td>
-                            <td>23 Apr, 2021 : 1:15 PM</td>
-                            <td>541-661-3042</td>
-                            <td>San Francisco</td>
-                        </tr>
-                        <tr>
-                            <td>Новый</td>
-                            <td>Jerry Mattedi</td>
-                            <td>19 May, 2021 : 10:10 AM</td>
-                            <td>251-661-5362</td>
-                            <td>New York</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                            <tr id="table-head">
+                                <td class="text-center">ID</td>
+                                <td class="text-center">Имя</td>
+                                <td class="text-center">Номер телефона</td>
+                                <td class="text-center">Дата создания</td>
+                                <td class="text-center">Сумма заказа</td>
+                                <td class="text-center">Дата готовности</td>
+                                <td class="text-center">Статус</td>
+                            </tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        loadEntities()
+        function loadEntities() {
+            $.ajax({
+                url: '/order/getLastOrdersForStatistics',
+                method: 'GET',
+                success: function (response) {
+
+                    console.log(response);
+                    renderEntitiesTable(response);
+                },
+                error: function (err) {
+                    console.error('Ошибка загрузки сущностей:', err);
+                }
+            });
+        }
+
+        function renderEntitiesTable(orders) {
+            const tableBody = $('#table-body');
+            tableBody.empty();
+
+            orders.forEach(order => {
+                const dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
+                const dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
+                console.log(order.totalAmount)
+                const row = `
+                <tr>
+                    <td class="text-center">${order.id}</td>
+                    <td class="text-center">${order.customerDto.name}</td>
+                    <td class="text-center">${order.customerDto.phoneNumber}</td>
+                    <td class="text-center">${dateTimeOfCreate}</td>
+                    <td class="text-center">${order.totalAmount}</td>
+                    <td class="text-center">${dateTimeOfReady}</td>
+                    <td class="text-center">${order.status}</td>
+
+                </tr>`;
+                tableBody.append(row);
+            });
+        }
+
+        function formatDateTime(dateTimeArray) {
+            const [year, month, day, hour, minute, second] = dateTimeArray;
+            const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+            return new Date(dateTimeString).toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric'
+            });
+        }
+    </script>
 </div>
 </body>
 </html>

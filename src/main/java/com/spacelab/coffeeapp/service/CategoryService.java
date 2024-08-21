@@ -17,7 +17,7 @@ public interface CategoryService {
 
     void createCategoryFromDto(CategoryDto categoryDto);
 
-    Category getCategory(Long id);
+    Optional<Category> getCategory(Long id);
 
     CategoryDto getCategoryDto(Long id);
 

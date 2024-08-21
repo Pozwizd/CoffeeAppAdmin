@@ -10,16 +10,6 @@
     </div>
     <div class="card">
         <div class="card-header py-2 d-flex align-items-center">
-            <div class="d-flex align-items-center me-auto">
-                <label class="d-flex align-items-center gap-1">
-                    Show:
-                    <select id="pageSize" class="form-control">
-                        <option value="5" selected>5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                    </select>
-                </label>
-            </div>
             <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
                 <div class="search-input-wrapper col-md-4">
                     <label class="d-flex align-items-center gap-2 w-100">
@@ -54,11 +44,21 @@
             </div>
         </div>
 
-        <div class="card-footer d-flex justify-content-center pb-0">
-            <nav>
-                <ul class="pagination" id="pagination"></ul>
+        <div class="card-footer d-flex justify-content-between align-items-center pb-0">
+            <label class="d-flex align-items-center gap-1" style="transform: translateY(-8px);">
+                Показать:
+                <select id="pageSize" class="form-control">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
             </nav>
         </div>
+
 
         <!-- Entity Modal -->
         <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
@@ -158,56 +158,56 @@
             </div>
         </div>
     </div>
+    <script th:replace="user/scripts::scripts"></script>
     <script>
-
         $(document).ready(function () {
-            const pageSize = parseInt($('#pageSize').val());
-            loadEntities(0, '', pageSize);
+            let pageSize = parseInt($('#pageSize').val());
+            let currentPage = 0;
+            loadEntities(currentPage, '', pageSize);
+            initializeEventHandlers();
 
-            $('#search').on('keyup', function () {
-                const search = $(this).val();
-                loadEntities(0, search, pageSize);
-            });
+            function initializeEventHandlers() {
+                $('#search').on('keyup', function () {
+                    const search = $(this).val();
+                    loadEntities(currentPage, search, pageSize);
+                });
 
-            $('#pageSize').on('change', function () {
-                const pageSize = parseInt($(this).val());
-                loadEntities(0, '', pageSize);
-            });
+                $('#pageSize').on('change', function () {
+                    pageSize = parseInt($(this).val());
+                    loadEntities(currentPage, '', pageSize);
+                });
 
-            $(document).on('click', '.page-link', function (e) {
+                $(document).on('click', '.page-link', handlePageLinkClick);
+                $(document).on('click', '.edit-entity-btn', handleEditEntityClick);
+                $(document).on('click', '#save-entity-btn', handleSaveEntityClick);
+                $(document).on('click', '.delete-entity-btn', handleDeleteEntityClick);
+                $(document).on('click', '#confirm-delete-btn', handleConfirmDeleteClick);
+            }
+
+            function handlePageLinkClick(e) {
                 e.preventDefault();
-                const page = parseInt($(this).data('page'));
-                loadEntities(page, $('#search').val(), pageSize);
-            });
+                currentPage = parseInt($(this).data('page'));
+                loadEntities(currentPage, $('#search').val(), pageSize);
+            }
 
-            $(document).on('click', '.edit-entity-btn', function () {
+            function handleEditEntityClick() {
                 const id = $(this).data('id');
                 $.ajax({
                     url: `/user/${id}`,
                     method: 'GET',
                     success: function (entity) {
-                        $('#nameWithTitle').val(entity.name);
-                        $('#email').val(entity.email);
-                        $('#password').val('');
-                        $('#passwordRepeat').val('');
-                        $('#role').val(entity.role);
-                        $('#save-entity-btn').data('id', entity.id);
-                        clearEntitiesFormError();
+                        populateEntityForm(entity);
                     },
                     error: function (err) {
                         console.error('Error fetching entity:', err);
                     }
                 });
-            });
+            }
 
-
-
-            $(document).on('click', '#save-entity-btn', function () {
+            function handleSaveEntityClick() {
                 const id = $(this).data('id');
-                // Поля password и passwordRepeat должны совпадать
                 if ($('#password').val() !== $('#passwordRepeat').val()) {
-                    $('#passwordError').text('Пароли не совпадают');
-                    $('#passwordRepeatError').text('Пароли не совпадают');
+                    showPasswordError();
                     return;
                 }
                 const userDto = {
@@ -217,174 +217,230 @@
                     password: $('#password').val(),
                     role: $('#role').val()
                 };
-
                 if (id) {
-                    $.ajax({
-                        url: `/user/${id}`,
-                        method: 'PUT',
-                        contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(userDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                            resetForm();
-                        },
-                        error: function (err) {
-                            console.error('Error updating entity:', err);
-                            validateEntitiesForm(err);
-                        }
-                    });
+                    updateUser(userDto);
                 } else {
-                    userDto.id = null;
-                    $.ajax({
-                        url: '/user/create',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(userDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-
-                            resetForm();
-                        },
-                        error: function (err) {
-                            validateEntitiesForm(err);
-                            console.error('Error creating entity:', err);
-                        }
-                    });
+                    createUser(userDto);
                 }
-            });
+            }
 
-            $(document).on('click', '.delete-entity-btn', function () {
+            function handleDeleteEntityClick() {
                 const id = $(this).data('id');
                 $('#confirm-delete-btn').data('id', id);
-            });
+            }
 
-            $(document).on('click', '#confirm-delete-btn', function () {
+            function handleConfirmDeleteClick() {
                 const id = $(this).data('id');
+                deleteUser(id);
+            }
+
+            function loadEntities(page = 0, search = '', pageSize = 5) {
+                $.ajax({
+                    url: `/user/getAll?page=${page}&search=${search}&size=${pageSize}`,
+                    method: 'GET',
+                    success: function (data) {
+                        populateTable(data.content);
+                        setupPagination(data.totalPages, page);
+                    },
+                    error: function (err) {
+                        console.error('Error loading entities:', err);
+                    }
+                });
+            }
+
+            function populateEntityForm(entity) {
+                $('#nameWithTitle').val(entity.name);
+                $('#email').val(entity.email);
+                $('#password').val('');
+                $('#passwordRepeat').val('');
+                $('#role').val(entity.role);
+                $('#save-entity-btn').data('id', entity.id);
+                clearFormErrors();
+            }
+
+            function showPasswordError() {
+                $('#passwordError').text('Пароли не совпадают');
+                $('#passwordRepeatError').text('Пароли не совпадают');
+            }
+
+            function updateUser(userDto) {
+                $.ajax({
+                    url: `/user/${userDto.id}`,
+                    method: 'PUT',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(userDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Error updating entity:', err);
+                        validateFormErrors(err);
+                    }
+                });
+            }
+
+            function createUser(userDto) {
+                $.ajax({
+                    url: '/user/create',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(userDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Error creating entity:', err);
+                        validateFormErrors(err);
+                    }
+                });
+            }
+
+            function deleteUser(id) {
                 $.ajax({
                     url: `/user/${id}`,
                     method: 'DELETE',
                     success: function () {
                         $('#deleteConfirmModal').modal('hide');
-                        loadEntities(0, $('#search').val(), $('#pageSize').val());
-                        $('#entityModal').removeClass('show');
-                        $('.modal-backdrop').remove();
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        removeModalBackdrop();
                     },
                     error: function (err) {
                         console.error('Error deleting entity:', err);
                     }
                 });
-            });
-
-            function resetForm () {
-                $('#entity-form')[0].reset();
-                $('#save-entity-btn').data('id', '')
-
-                $('#nameWithTitle').val('');
-                $('#email').val('');
-                $('#password').val('');
-                $('#passwordRepeat').val('');
-                $('#role').val('');
-                clearEntitiesFormError();
             }
 
-            getRoles();
-        });
-        function getRoles() {
-            $.ajax({
-                url: '/user/roles',
-                type: 'GET',
-                success: function(response) {
-                    $.each(response, function(index, role) {
-                        $('#role').append('<option value="' + role + '">' + role + '</option>');
-                    });
-                },
-                error: function(error) {
-                    console.log(error);
-                }
-            });
-        }
-        function loadEntities(page = 0, search = '', pageSize = 5) {
-            $.ajax({
-                url: `/user/getAll?page=${page}&search=${search}&size=${pageSize}`,
-                method: 'GET',
-                success: function (data) {
-                    const rows = data.content.map(entity => `
+            function populateTable(entities) {
+                const rows = entities.map(entity => `
                 <tr>
                     <td class="text-center">${entity.id}</td>
                     <td class="text-center">${entity.name}</td>
                     <td class="text-center">${entity.email}</td>
                     <td class="text-center">${entity.role}</td>
                     <td class="d-flex justify-content-center">
-
                         <button class="btn btn-sm btn-primary edit-entity-btn" data-id="${entity.id}" data-bs-toggle="modal" data-bs-target="#entityModal"><i class="ti ti-pencil"></i></button>
-
-
                         <button class="btn btn-sm btn-danger delete-entity-btn" data-id="${entity.id}" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"><i class="ti ti-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
-                    $('#table-body').html(rows);
-                    setupPagination(data.totalPages, page);
-                },
-                error: function (err) {
-                    console.error('Error loading entities:', err);
-                }
-            });
-        }
-        function validateEntitiesForm(error) {
-            const errorData = error.responseJSON;
-            for (const field in errorData) {
-                const errorMessage = errorData[field];
-                $(`#${field}Error`).text(errorMessage);
-            }
-        }
-        function clearEntitiesFormError() {
-            $('.text-danger').html('');
-        }
-
-        function setupPagination(totalPages, currentPage) {
-            let paginationItems = '';
-
-            if (currentPage > 0) {
-                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
-            } else {
-                paginationItems += `<li class="page-item disabled"><a class="page-link">&laquo;</a></li>`;
+                $('#table-body').html(rows);
             }
 
-            if (currentPage > 1) {
-                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="0">1</a></li>`;
-                if (currentPage > 2) {
-                    paginationItems += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
+            function validateFormErrors(error) {
+                const errorData = error.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}Error`).text(errorMessage);
                 }
             }
 
-            for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-                paginationItems += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`;
+            function clearFormErrors() {
+                $('.text-danger').html('');
             }
 
-            if (currentPage < totalPages - 2) {
-                if (currentPage < totalPages - 3) {
-                    paginationItems += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
+            function closeModal() {
+                $('#entityModal').modal('hide');
+                $('#entityModal').removeClass('show');
+                removeModalBackdrop();
+            }
+
+            function resetForm() {
+                $('#entity-form')[0].reset();
+                $('#save-entity-btn').data('id', '');
+                clearFormErrors();
+            }
+
+            function removeModalBackdrop() {
+                $('.modal-backdrop').remove();
+            }
+
+            function setupPagination(totalPages, currentPage) {
+                let paginationItems = '';
+
+                // First page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                 }
-                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages - 1}">${totalPages}</a></li>`;
+
+                // Previous page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                }
+
+                // Pagination items
+                if (currentPage > 1) {
+                    paginationItems += createPaginationItem(0, '1');
+                    if (currentPage > 2) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                }
+
+                for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    paginationItems += createPaginationItem(i, i + 1, '', i === currentPage);
+                }
+
+                if (currentPage < totalPages - 2) {
+                    if (currentPage < totalPages - 3) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                    paginationItems += createPaginationItem(totalPages - 1, totalPages);
+                }
+
+                // Next page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                }
+
+                // Last page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                }
+
+                $('#pagination').html(paginationItems);
             }
 
-            if (currentPage < totalPages - 1) {
-                paginationItems += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
-            } else {
-                paginationItems += `<li class="page-item disabled"><a class="page-link">&raquo;</a></li>`;
+            function createPaginationItem(page, text, className = '', isActive = false) {
+                return `<li class="page-item ${className} ${isActive ? 'active' : ''}"><a class="page-link" href="#" data-page="${page}">${text}</a></li>`;
             }
 
-            $('#pagination').html(paginationItems);
-        }
+            function createDisabledPaginationItem(text, className = '') {
+                return `<li class="page-item disabled ${className}"><a class="page-link">${text}</a></li>`;
+            }
 
+            // Initialize roles
+            getRoles();
+
+            function getRoles() {
+                $.ajax({
+                    url: '/user/roles',
+                    method: 'GET',
+                    success: function (response) {
+                        response.forEach(role => {
+                            $('#role').append(`<option value="${role}">${role}</option>`);
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error fetching roles:', error);
+                    }
+                });
+            }
+        });
     </script>
+
+
+
 
 
 </div>

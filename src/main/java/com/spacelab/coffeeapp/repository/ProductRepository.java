@@ -1,6 +1,5 @@
 package com.spacelab.coffeeapp.repository;
 
-import com.spacelab.coffeeapp.dto.TopProduct;
 import com.spacelab.coffeeapp.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,8 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.sql.Date;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -29,13 +29,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT COUNT(oi) FROM OrderItem oi")
     Long countTotalOrderItems();
 
-    @Query("SELECT p.name as name, SUM(oi.quantity) as totalQuantity FROM Product p " +
+    @Query("SELECT p.name as name, COUNT(oi.id) as purchaseCount FROM Product p " +
             "JOIN OrderItem oi ON p.id = oi.product.id " +
             "GROUP BY p.name " +
-            "ORDER BY SUM(oi.quantity) DESC")
-    List<Object[]> findTop3Products(Pageable pageable);
+            "ORDER BY COUNT(oi.id) DESC")
+    List<Object[]> findTopProductsAndFrequency(Pageable pageable);
 
-
+    @Query("SELECT p FROM Product p " +
+            "JOIN OrderItem oi ON p.id = oi.product.id " +
+            "GROUP BY p.id " +
+            "ORDER BY COUNT(oi.id) DESC")
+    List<Product> findTopProducts(Pageable pageable);
 
     @Query("SELECT p.id, p.name, SUM(oi.quantity) AS totalSales FROM OrderItem oi " +
             "JOIN oi.product p " +
@@ -44,5 +48,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "GROUP BY p.id, p.name " +
             "ORDER BY totalSales DESC")
     List<Object[]> findTopSellingProducts(@Param("startDate") LocalDate startDate, Pageable pageable);
+
+    List<Product> findAll(Specification<Product> productSpecification);
+
+    @Query("SELECT p.name, EXTRACT(MONTH FROM o.dateTimeOfCreate) AS month, COUNT(oi.id) AS purchaseCount " +
+            "FROM Product p " +
+            "JOIN OrderItem oi ON p.id = oi.product.id " +
+            "JOIN Order o ON o.id = oi.order.id " +
+            "WHERE o.dateTimeOfCreate >= :startDate " +
+            "GROUP BY p.name, EXTRACT(MONTH FROM o.dateTimeOfCreate) " +
+            "ORDER BY COUNT(oi.id) DESC")
+    List<Object[]> findTopProductsSalesByMonth(@Param("startDate") LocalDateTime startDate, Pageable pageable);
+
+
 
 }

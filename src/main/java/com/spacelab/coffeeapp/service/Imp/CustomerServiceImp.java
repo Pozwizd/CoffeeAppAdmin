@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -97,14 +98,13 @@ public class CustomerServiceImp implements CustomerService {
     }
 
     @Override
-    public Double calculateActiveCustomersLastMonth() {
-//        return customerRepository.calculateActiveCustomersLastMonth();
-        return 0.0;
+    public Long getCountOfCustomersWithOrdersLastWeek() {
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
+        return customerRepository.countUniqueCustomersWithOrdersSince(oneWeekAgo);
     }
 
     @Override
     public Double calculateChangesLastWeek() {
-//        return customerRepository.calculateChangesLastWeek();
-        return 0.0;
+        return (double) 0;
     }
 }

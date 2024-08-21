@@ -9,16 +9,6 @@
     </div>
     <div class="card">
         <div class="card-header py-2 d-flex align-items-center">
-            <div class="d-flex align-items-center me-auto">
-                <label class="d-flex align-items-center gap-1">
-                    Показать:
-                    <select id="pageSize" class="form-control">
-                        <option value="5" selected>5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                    </select>
-                </label>
-            </div>
             <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
                 <div class="search-input-wrapper col-md-4">
                     <label class="d-flex align-items-center gap-2 w-100">
@@ -57,9 +47,18 @@
             </div>
         </div>
 
-        <div class="card-footer d-flex justify-content-center pb-0">
-            <nav>
-                <ul class="pagination" id="pagination"></ul>
+        <div class="card-footer d-flex justify-content-between align-items-center pb-0">
+            <label class="d-flex align-items-center gap-1" style="transform: translateY(-8px);">
+                Показать:
+                <select id="pageSize" class="form-control">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
             </nav>
         </div>
 
@@ -121,7 +120,6 @@
                                 <div class="col mb-3">
                                     <label for="status" class="form-label">Статус</label>
                                     <select id="status" class="form-control">
-                                        <!-- Статусы будут загружены через AJAX -->
                                     </select>
                                     <div id="statusError" class="text-danger"></div>
                                 </div>
@@ -158,49 +156,55 @@
     <script>
         $(document).ready(function () {
             let pageSize = parseInt($('#pageSize').val());
-            loadEntities(0, '', pageSize);
+            let currentPage = 0;
+            loadEntities(currentPage, '', pageSize);
+            initializeEventHandlers();
             loadLanguages();
             loadStatuses();
 
-            $('#search').on('keyup', function () {
-                const search = $(this).val();
-                loadEntities(0, search, pageSize);
-            });
+            function initializeEventHandlers() {
+                $('#search').on('keyup', function () {
+                    const search = $(this).val();
+                    loadEntities(0, search, pageSize);
+                });
 
-            $('#pageSize').on('change', function () {
-                pageSize = parseInt($(this).val());
-                loadEntities(0, '', pageSize);
-            });
+                $('#pageSize').on('change', function () {
+                    pageSize = parseInt($(this).val());
+                    loadEntities(0, '', pageSize);
+                });
 
-            $(document).on('click', '.page-link', function (e) {
+                $(document).on('click', '.page-link', handlePageLinkClick);
+                $(document).on('click', '.edit-entity-btn', handleEditEntityClick);
+                $(document).on('click', '#save-entity-btn', handleSaveEntityClick);
+                $(document).on('click', '.delete-entity-btn', handleDeleteEntityClick);
+                $(document).on('click', '#confirm-delete-btn', handleConfirmDeleteClick);
+                $(document).on('click', '#createEntity', function () {
+                    resetForm();
+                    clearEntitiesFormError();
+                });
+            }
+
+            function handlePageLinkClick(e) {
                 e.preventDefault();
-                const page = parseInt($(this).data('page'));
-                loadEntities(page, $('#search').val(), pageSize);
-            });
+                currentPage = parseInt($(this).data('page'));
+                loadEntities(currentPage, $('#search').val(), pageSize);
+            }
 
-            $(document).on('click', '.edit-entity-btn', function () {
+            function handleEditEntityClick() {
                 const id = $(this).data('id');
                 $.ajax({
                     url: `/customer/${id}`,
                     method: 'GET',
                     success: function (entity) {
-                        $('#name').val(entity.name);
-                        $('#email').val(entity.email);
-                        $('#dateOfBirth').val(entity.dateOfBirth);
-                        $('#address').val(entity.address);
-                        $('#phoneNumber').val(entity.phoneNumber);
-                        $('#language').val(entity.language);
-                        $('#status').val(entity.status);
-                        $('#save-entity-btn').data('id', entity.id);
-                        clearEntitiesFormError();
+                        populateEntityForm(entity);
                     },
                     error: function (err) {
                         console.error('Ошибка получения данных сущности:', err);
                     }
                 });
-            });
+            }
 
-            $(document).on('click', '#save-entity-btn', function () {
+            function handleSaveEntityClick() {
                 const id = $(this).data('id');
                 const customerDto = {
                     id: id,
@@ -214,70 +218,23 @@
                 };
 
                 if (id) {
-                    $.ajax({
-                        url: `/customer/${id}`,
-                        method: 'PUT',
-                        contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(customerDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                        },
-                        error: function (err) {
-                            console.error('Ошибка обновления сущности:', err);
-                            validateEntitiesForm(err);
-                        }
-                    });
+                    updateUser(customerDto);
                 } else {
-                    $.ajax({
-                        url: '/customer',
-                        method: 'POST',
-                        contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(customerDto),
-                        success: function () {
-                            $('#entityModal').modal('hide');
-                            loadEntities(0, $('#search').val(), $('#pageSize').val());
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                        },
-                        error: function (err) {
-                            console.error('Ошибка создания сущности:', err);
-                            validateEntitiesForm(err);
-                        }
-                    });
+                    createUser(customerDto);
                 }
-            });
+            }
 
-            $(document).on('click', '.delete-entity-btn', function () {
+            function handleDeleteEntityClick() {
                 const id = $(this).data('id');
                 $('#confirm-delete-btn').data('id', id);
-            });
+            }
 
-            $(document).on('click', '#confirm-delete-btn', function () {
+            function handleConfirmDeleteClick() {
                 const id = $(this).data('id');
-                $.ajax({
-                    url: `/customer/${id}`,
-                    method: 'DELETE',
-                    success: function () {
-                        $('#deleteConfirmModal').modal('hide');
-                        loadEntities(0, $('#search').val(), $('#pageSize').val());
-                        $('#deleteConfirmModal').removeClass('show');
-                        $('.modal-backdrop').remove();
-                    },
-                    error: function (err) {
-                        console.error('Ошибка удаления сущности:', err);
-                    }
-                });
-            });
+                deleteUser(id);
+            }
 
-            $(document).on('click', '#createEntity', function () {
-                resetForm();
-                clearEntitiesFormError();
-            });
-
-            function loadEntities(page, search, pageSize) {
+            function loadEntities(page = 0, search = '', pageSize = 5) {
                 $.ajax({
                     url: '/customer/getAll',
                     method: 'GET',
@@ -287,10 +244,8 @@
                         search: search
                     },
                     success: function (response) {
-                        const customers = response.content;
-                        const totalPages = response.totalPages;
-                        renderEntitiesTable(customers);
-                        renderPagination(page, totalPages);
+                        populateTable(response.content);
+                        setupPagination(response.totalPages, page);
                     },
                     error: function (err) {
                         console.error('Ошибка загрузки сущностей:', err);
@@ -298,100 +253,118 @@
                 });
             }
 
-            function loadLanguages() {
+            function populateEntityForm(entity) {
+                var dateArray = entity.dateOfBirth;
+                var year = dateArray[0];
+                var month = ('0' + dateArray[1]).slice(-2);
+                var day = ('0' + dateArray[2]).slice(-2);
+                var dateString = `${year}-${month}-${day}`;
+
+                console.log(entity);
+
+                $('#name').val(entity.name);
+                $('#email').val(entity.email);
+                $('#dateOfBirth').val(dateString);
+                $('#address').val(entity.address);
+                $('#phoneNumber').val(entity.phoneNumber);
+                $('#language').val(entity.language);
+                $('#status').val(entity.status);
+                $('#save-entity-btn').data('id', entity.id);
+                clearEntitiesFormError();
+            }
+
+            function updateUser(customerDto) {
                 $.ajax({
-                    url: '/customer/getLanguages',
-                    method: 'GET',
-                    success: function (languages) {
-                        const languageSelect = $('#language');
-                        languageSelect.empty();
-                        languages.forEach(language => {
-                            languageSelect.append(new Option(language, language));
-                        });
+                    url: `/customer/${customerDto.id}`,
+                    method: 'PUT',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(customerDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        resetForm();
                     },
                     error: function (err) {
-                        console.error('Ошибка загрузки языков:', err);
+                        console.error('Ошибка обновления сущности:', err);
+                        validateEntitiesForm(err);
                     }
                 });
             }
 
-            function loadStatuses() {
+            function createUser(customerDto) {
                 $.ajax({
-                    url: '/customer/customerStatus',
-                    method: 'GET',
-                    success: function (statuses) {
-                        const statusSelect = $('#status');
-                        statusSelect.empty();
-                        statuses.forEach(status => {
-                            statusSelect.append(new Option(status, status));
-                        });
+                    url: '/customer',
+                    method: 'POST',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(customerDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        resetForm();
                     },
                     error: function (err) {
-                        console.error('Ошибка загрузки статусов:', err);
+                        console.error('Ошибка создания сущности:', err);
+                        validateEntitiesForm(err);
                     }
                 });
             }
 
-            function renderEntitiesTable(customers) {
+            function deleteUser(id) {
+                $.ajax({
+                    url: `/customer/${id}`,
+                    method: 'DELETE',
+                    success: function () {
+                        $('#deleteConfirmModal').modal('hide');
+                        loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
+                        removeModalBackdrop();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка удаления сущности:', err);
+                    }
+                });
+            }
+
+            function populateTable(entities) {
                 const tableBody = $('#table-body');
                 tableBody.empty();
 
-                if (customers.length === 0) {
+                if (entities.length === 0) {
                     tableBody.append('<tr><td colspan="9" class="text-center">Нет данных</td></tr>');
                 } else {
-                    customers.forEach(customer => {
-                        let dateOfBirth = new Date(customer.dateOfBirth).toLocaleDateString('ru-RU');
+                    entities.forEach(entity => {
+                        let dateOfBirth = new Date(entity.dateOfBirth).toLocaleDateString('ru-RU');
 
                         const row = `<tr>
-                        <td class="text-center">${customer.id}</td>
-                        <td class="text-center">${customer.name}</td>
-                        <td class="text-center">${customer.email}</td>
-                        <td class="text-center">${dateOfBirth}</td>
-                        <td class="text-center">${customer.address}</td>
-                        <td class="text-center">${customer.phoneNumber}</td>
-                        <td class="text-center">${customer.language}</td>
-                        <td class="text-center">${customer.status}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-primary edit-entity-btn" data-bs-toggle="modal" data-id="${customer.id}" data-bs-target="#entityModal">
-                                <i class="ti ti-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${customer.id}" data-bs-target="#deleteConfirmModal">
-                                <i class="ti ti-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
+                    <td class="text-center">${entity.id}</td>
+                    <td class="text-center">${entity.name}</td>
+                    <td class="text-center">${entity.email}</td>
+                    <td class="text-center">${dateOfBirth}</td>
+                    <td class="text-center">${entity.address}</td>
+                    <td class="text-center">${entity.phoneNumber}</td>
+                    <td class="text-center">${entity.language}</td>
+                    <td class="text-center">${entity.status}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary edit-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#entityModal">
+                            <i class="ti ti-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#deleteConfirmModal">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
                         tableBody.append(row);
                     });
                 }
             }
 
-            function renderPagination(currentPage, totalPages) {
-                const pagination = $('#pagination');
-                pagination.empty();
-
-                if (totalPages > 1) {
-                    const prevPage = currentPage > 0 ? currentPage - 1 : 0;
-                    const nextPage = currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1;
-
-                    pagination.append(`<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${prevPage}">Previous</a>
-                </li>`);
-
-                    for (let i = 0; i < totalPages; i++) {
-                        pagination.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
-                    </li>`);
-                    }
-
-                    pagination.append(`<li class="page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${nextPage}">Next</a>
-                </li>`);
+            function validateEntitiesForm(err) {
+                clearEntitiesFormError();
+                if (err.responseJSON && err.responseJSON.errors) {
+                    const errors = err.responseJSON.errors;
+                    errors.forEach(error => {
+                        $(`#${error.field}Error`).text(error.defaultMessage);
+                    });
                 }
-            }
-
-            function resetForm() {
-                $('#entity-form')[0].reset();
-                $('#save-entity-btn').removeData('id');
             }
 
             function clearEntitiesFormError() {
@@ -404,17 +377,122 @@
                 $('#statusError').text('');
             }
 
-            function validateEntitiesForm(err) {
-                clearEntitiesFormError();
-                if (err.responseJSON && err.responseJSON.errors) {
-                    const errors = err.responseJSON.errors;
-                    errors.forEach(error => {
-                        $(`#${error.field}Error`).text(error.defaultMessage);
-                    });
+            function closeModal() {
+                $('#entityModal').modal('hide');
+                $('#entityModal').removeClass('show');
+                removeModalBackdrop();
+            }
+
+            function resetForm() {
+                $('#entity-form')[0].reset();
+                $('#save-entity-btn').removeData('id');
+            }
+
+            function removeModalBackdrop() {
+                $('.modal-backdrop').remove();
+            }
+
+            function setupPagination(totalPages, currentPage) {
+                let paginationItems = '';
+
+                // First page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                 }
+
+                // Previous page button
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                }
+
+                // Pagination items
+                if (currentPage > 1) {
+                    paginationItems += createPaginationItem(0, '1');
+                    if (currentPage > 2) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                }
+
+                for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    paginationItems += createPaginationItem(i, i + 1, '', i === currentPage);
+                }
+
+                if (currentPage < totalPages - 2) {
+                    if (currentPage < totalPages - 3) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                    paginationItems += createPaginationItem(totalPages - 1, totalPages);
+                }
+
+                // Next page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                }
+
+                // Last page button
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                }
+
+                $('#pagination').html(`<ul class="pagination justify-content-center">${paginationItems}</ul>`);
+            }
+
+            function createPaginationItem(page, text, ariaLabel = '', isActive = false) {
+                return `<li class="page-item ${isActive ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${page}" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</a>
+                    </li>`;
+            }
+
+            function createDisabledPaginationItem(text, ariaLabel = '') {
+                return `<li class="page-item disabled">
+                        <span class="page-link" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</span>
+                    </li>`;
+            }
+
+            function loadLanguages() {
+                $.ajax({
+                    url: '/customer/getLanguages',
+                    method: 'GET',
+                    success: function (languages) {
+                        populateSelectOptions('#language', languages);
+                    },
+                    error: function (err) {
+                        console.error('Ошибка загрузки языков:', err);
+                    }
+                });
+            }
+
+            function loadStatuses() {
+                $.ajax({
+                    url: '/customer/customerStatus',
+                    method: 'GET',
+                    success: function (statuses) {
+                        populateSelectOptions('#status', statuses);
+                    },
+                    error: function (err) {
+                        console.error('Ошибка загрузки статусов:', err);
+                    }
+                });
+            }
+
+            function populateSelectOptions(selector, options) {
+                const selectElement = $(selector);
+                selectElement.empty();
+                options.forEach(option => {
+                    selectElement.append(new Option(option, option));
+                });
             }
         });
     </script>
+
 
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>

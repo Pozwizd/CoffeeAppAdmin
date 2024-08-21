@@ -5,7 +5,6 @@ import com.spacelab.coffeeapp.entity.*;
 import com.spacelab.coffeeapp.mapper.CustomerMapper;
 import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.CustomerService;
-import com.spacelab.coffeeapp.service.LocationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

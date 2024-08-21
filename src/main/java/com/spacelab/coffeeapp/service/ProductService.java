@@ -5,25 +5,22 @@ import com.spacelab.coffeeapp.dto.TopProduct;
 import com.spacelab.coffeeapp.entity.Product;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public interface ProductService {
 
-    @Transactional
-    Map<String, int[]> getTopProductsSalesLastMonths(int months);
+
 
     void saveProduct(Product product);
-    Product getProduct(Long id);
+    Optional<Product> getProduct(Long id);
 
     ProductDto getProductDto(Long id);
-
-    List<Product> getAllProducts();
-
-    List<ProductDto> getAllProductDto();
 
     Product createProduct(Product product);
 
@@ -52,4 +49,12 @@ public interface ProductService {
 
     List<TopProduct> getTop3Products();
 
+    List<Product> getAllProducts();
+
+    List<ProductDto> getAllProductsDto();
+
+    List<ProductDto> findByCategoryId(Long id);
+
+
+    Map<String, List<Integer>> findTopProductsSalesByMonth(int quantityProduct, int months);
 }

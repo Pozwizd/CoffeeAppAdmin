@@ -1,4 +1,4 @@
-package com.spacelab.coffeeapp.Validators.user;
+package com.spacelab.coffeeapp.validators.user;
 
 
 import jakarta.validation.Constraint;

@@ -1,6 +1,6 @@
 package com.spacelab.coffeeapp.dto;
 
-import com.spacelab.coffeeapp.Validators.user.UniqueEmail;
+import com.spacelab.coffeeapp.validators.user.UniqueEmail;
 import com.spacelab.coffeeapp.entity.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

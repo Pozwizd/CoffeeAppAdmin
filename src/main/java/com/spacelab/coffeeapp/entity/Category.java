@@ -25,6 +25,8 @@ public class Category {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "category")
     private List<Product> products = new ArrayList<>();
 
+    private Boolean deleted = false;
+
 
     public enum Status {
         ACTIVE,

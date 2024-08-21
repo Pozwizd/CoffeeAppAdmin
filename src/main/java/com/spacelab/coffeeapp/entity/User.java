@@ -1,16 +1,12 @@
 package com.spacelab.coffeeapp.entity;
 
-import com.spacelab.coffeeapp.token.Token;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,15 +28,31 @@ public class User implements UserDetails {
 
     private String password;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private PasswordResetToken passwordResetToken;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user")
-    private List<Token> tokens;
+
+    @Getter
+    public enum Role {
+        ADMIN("Администратор"),
+        MANAGER("Менеджер");
+
+        Role(String roleName) {
+            this.roleName = roleName;
+        }
+        private final String roleName;
+
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getAuthorities();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        System.out.println(getRole().toString());
+        authorities.add(new SimpleGrantedAuthority("ROLE_"+getRole().name()));
+        return authorities;
     }
 
     @Override

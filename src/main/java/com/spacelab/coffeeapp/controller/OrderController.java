@@ -30,11 +30,9 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
     private final CityService cityService;
-    private final DeliveryService deliveryService;
     private final AttributeValueService attributeValueService;
 
 
-    //    Страница всех заказов
     @ModelAttribute
     public void addAttributes(Model model) {
         model.addAttribute("pageActive", "orders");
@@ -49,9 +47,17 @@ public class OrderController {
     @GetMapping("/getAll")
     @ResponseBody
     public Page<OrdersDto> getEntities(@RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "5") Integer size) {
+                                       @RequestParam(defaultValue = "5") Integer size,
+                                       @RequestParam(defaultValue = "") String search) {
 
-        return orderService.getPagedAllOrdersDto(page, size);
+        return orderService.getPagedAllOrdersDto(page, size, search);
+    }
+
+    @GetMapping("/getLastOrdersForStatistics")
+    @ResponseBody
+    public List<OrdersDto> getLastOrdersForStatistics() {
+
+        return orderService.getLastOrdersForStatistics();
     }
 
     @ResponseBody
@@ -61,13 +67,19 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    //    Страница заказа
     @GetMapping("/{id}")
-    public ModelAndView getEntity(@PathVariable String id, HttpSession session) {
-        session.setAttribute("order", orderService.getOrderDto(Long.valueOf(id)));
-        return new ModelAndView("orders/orderItem");
+    public ModelAndView getEntity(@PathVariable String id) {
+        OrdersDto order = orderService.getOrderDto(Long.valueOf(id));
+        return new ModelAndView("orders/orderItem").addObject("order", orderService.getOrderDto(Long.valueOf(id)));
     }
-    //=====================================
+
+    @PostMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> saveEntity(@Valid @RequestBody OrdersDto ordersDto, HttpSession session) {
+        OrdersDto order = ordersDto;
+        Order order1 = orderService.saveOrderFromDto(ordersDto);
+        return ResponseEntity.ok().build();
+    }
 
     @ResponseBody
     @GetMapping("/fromSession")
@@ -77,7 +89,6 @@ public class OrderController {
         return order;
     }
 
-    // Асинхронная загрузка элементов заказа
     @ResponseBody
     @GetMapping("/items")
     public List<OrderItemDto> getItems(HttpSession session) {
@@ -97,13 +108,13 @@ public class OrderController {
         return order.getOrderItemsDto().stream().filter(orderItemDto -> orderItemDto.getId().equals(Long.valueOf(id))).findFirst().orElse(null);
     }
 
-    // Редактирование элемента заказа в сессии
     @ResponseBody
     @PutMapping("/item/{id}")
     public ResponseEntity<?> editItem(@Valid @RequestBody OrderItemDto orderItemDto, HttpSession session, @PathVariable String id) {
 
         OrdersDto order = (OrdersDto) session.getAttribute("order");
-        order.getOrderItemsDto().stream().filter(orderItemDtoFromSession -> orderItemDto.getId().equals(Long.valueOf(id))).findFirst().map(orderItemDto1 -> {
+        order.getOrderItemsDto().stream().filter(orderItemDtoFromSession ->
+                orderItemDto.getId().equals(Long.valueOf(id))).findFirst().map(orderItemDto1 -> {
             orderItemDto1.setCategoryId(orderItemDto.getCategoryId());
             orderItemDto1.setProductId(orderItemDto.getProductId());
             orderItemDto1.setQuantity(orderItemDto.getQuantity());
@@ -120,7 +131,6 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    // Сохранение нового элемента заказа в сессии
     @ResponseBody
     @PostMapping("/item/create")
     public ResponseEntity<?> saveItem(@RequestBody OrderItemDto items ,HttpSession session) {
@@ -143,7 +153,7 @@ public class OrderController {
         session.setAttribute("order", order);
         return ResponseEntity.ok().build();
     }
-    //=====================================
+
 
     // Загрузка типов оплаты в модальное окно
     @GetMapping("/typePayment")
@@ -213,7 +223,7 @@ public class OrderController {
 
     private double calculateOrderItemTotal(OrderItemDto orderItemDto) {
         return orderItemDto.getQuantity() * orderItemDto.getAttributes().stream()
-                .mapToDouble(attr -> attributeValueService.getAttributeValue(attr.getAttributeValueId()).getPrice())
+                .mapToDouble(attr -> attributeValueService.getAttributeValue(attr.getAttributeValueId()).get().getPrice())
                 .sum();
     }
 

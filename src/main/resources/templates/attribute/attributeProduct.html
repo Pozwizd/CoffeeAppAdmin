@@ -12,33 +12,55 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <form id="attributeForm" th:object="${attributeProduct}">
+            <form id="attributeForm"
+                  method="post"
+                  enctype="multipart/form-data"
+                  th:object="${attributeProduct}"
+                  th:action="@{/attribute/{id}(id=${attributeProduct.id != null ? attributeProduct.id : 'create'})}">
                 <div class="row g-2">
+                    <input type="hidden" th:field="*{id}">
                     <div class="col mb-0">
                         <label for="name" class="form-label">Имя</label>
-                        <input th:value="*{name}"
-                                type="text"
-                                id="name"
-                                name="name"
-                                class="form-control"
-                                placeholder=""
+                        <input th:field="*{name}"
+                               type="text"
+                               id="name"
+                               name="name"
+                               class="form-control"
+                               placeholder=""
                                th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"/>
                         <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                     </div>
                     <div class="col mb-0">
                         <label for="type" class="form-label">Тип добавки</label>
-                        <select th:value="*{type}"
+                        <select th:field="*{type}"
                                 id="type"
                                 class="form-select form-select"
                                 data-allow-clear="true"
-                                name="type"
-                                th:classappend="${#fields.hasErrors('type')} ? 'is-invalid'">>
-                            <option th:each="type : ${typeAttribute}"
-                                    th:value="${type}"
-                                    th:text="${type.name()}">
-                            </option>
+                                name="type">
+                            <option th:each="type : ${typeAttribute}" th:value="${type}" th:text="${type}"></option>
                         </select>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col mb-0">
+                        <label for="select2Primary" class="form-label">Продукты</label>
+                        <select id="select2Primary" class="select2 form-select" th:field="*{productId}" multiple>
+                            <option th:each="product : ${products}" th:value="${product.id}"
+                                    th:text="${product.name}"></option>
+                        </select></div>
+                    <div class="col-sm-6 p-4">
+                        <label class="switch switch-outline">
+                            <input type="checkbox" th:field="*{status}" class="switch-input" />
+                            <span class="switch-toggle-slider">
+                            <span class="switch-on">
+                              <i class="ti ti-check"></i>
+                            </span>
+                            <span class="switch-off">
+                              <i class="ti ti-x"></i>
+                            </span>
+                          </span>
+                            <span class="switch-label">Статус</span>
+                        </label>
                     </div>
                 </div>
             </form>
@@ -73,20 +95,12 @@
 
         </div>
 
-        <div class="card-footer d-flex justify-content-center pb-0">
-            <nav>
-                <ul class="pagination" id="pagination"></ul>
-            </nav>
-        </div>
 
-        <!--  Кнопки назад и сохранить  -->
         <div class="card-footer d-flex justify-content-between">
             <button type="button" id="btn-back" class="btn btn-primary" onclick="window.history.back()">Назад</button>
             <button type="submit" class="btn btn-success" id="btn-save">Сохранить</button>
         </div>
 
-
-        <!-- Entity Modal -->
         <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -134,15 +148,17 @@
                                 <div class="col mb-3">
                                     <label for="description" class="form-label">Описание</label>
                                     <textarea id="description"
-                                            class="form-control"
-                                            data-allow-clear="true"
-                                            name="role">
+                                              class="form-control"
+                                              data-allow-clear="true"
+                                              name="role">
                                     </textarea>
                                     <div id="descriptionError" class="text-danger"></div>
                                 </div>
                             </div>
                         </form>
                     </div>
+
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" id="save-entity-btn">Save changes</button>
@@ -171,63 +187,73 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-        let attributeId = String([[${attributeProductId}]]);
-        document.getElementById("btn-save").addEventListener("click", function () {
-
-
-            let form = document.getElementById("attributeForm");
-            form.action = `/attribute/${attributeId}/`;
-            form.method = "POST";
-            form.enctype = "multipart/form-data";
-            form.submit();
-        });
-
-
-
-        const textarea = document.querySelector("#description");
-        autosize(textarea);
-
+    <script>
         $(document).ready(function () {
-            document.getElementById("btn-save").addEventListener("click", function () {
-                document.getElementById("productForm").submit();
-            });
+            initializeSelect2();
+            initializeTextareaAutosize();
+            initializeEventListeners();
 
-            loadEntities(attributeId);
+            loadEntities();
 
+            function initializeSelect2() {
+                let select2 = $('.select2');
 
-            $(document).on('click', '.edit-entity-btn', function () {
+                if (select2.length) {
+                    select2.each(function () {
+                        let $this = $(this);
+                        $this.wrap('<div class="position-relative dark-style"></div>').select2({
+                            placeholder: 'Select value',
+                            dropdownParent: $this.parent()
+                        });
+                    });
+                }
+            }
+
+            function initializeTextareaAutosize() {
+                const textarea = document.querySelector("#description");
+                autosize(textarea);
+            }
+
+            function initializeEventListeners() {
+                document.getElementById("btn-save").addEventListener("click", function () {
+                    document.getElementById("attributeForm").submit();
+                });
+
+                $(document).on('click', '.edit-entity-btn', handleEditEntity);
+                $(document).on('click', '#createEntity', handleCreateEntity);
+                $(document).on('click', '#save-entity-btn', handleSaveEntity);
+                $(document).on('click', '.delete-entity-btn', handleDeleteEntity);
+                $(document).on('click', '#confirm-delete-btn', confirmDeleteEntity);
+            }
+
+            function handleEditEntity() {
                 const id = $(this).data('id');
-                console.log(`/attributeValue/${id}`);
+                fetchEntityDetails(id);
+            }
+
+            function fetchEntityDetails(id) {
                 $.ajax({
                     url: `/attributeValue/${id}`,
                     method: 'GET',
                     success: function (entity) {
-                        console.log(entity);
-                        $('#nameAttributeValue').val(entity.name);
-                        $('#price').val(entity.price);
-                        $('#priceWithDiscount').val(entity.priceWithDiscount);
-                        $('#description').val(entity.description);
-                        $('#save-entity-btn').data('id', entity.name).attr('data-id', entity.id);
+                        populateEntityForm(entity);
                         clearEntitiesFormError();
                     },
                     error: function (err) {
                         console.error('Error fetching entity:', err);
                     }
                 });
-            });
+            }
 
-            $(document).on('click', '#createEntity', function () {
+            function handleCreateEntity() {
                 $('#nameWithTitle').val('');
                 resetForm();
                 clearEntitiesFormError();
-            });
+            }
 
-            $(document).on('click', '#save-entity-btn', function () {
+            function handleSaveEntity() {
                 const name = $(this).data('id');
                 const id = $(this).attr('data-id');
-
-
                 const attributeValueDto = {
                     id: id,
                     name: $('#nameAttributeValue').val(),
@@ -235,77 +261,83 @@
                     priceWithDiscount: $('#priceWithDiscount').val(),
                     description: $('#description').val()
                 };
-                console.log(attributeValueDto);
 
                 if (name) {
-                    console.log(`/attribute/${attributeId}/attributeValue/${name}`);
-                    $.ajax({
-                        url: `/attribute/${attributeId}/attributeValue/${name}`,
-                        method: 'PUT',
-                        contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(attributeValueDto),
-                        success: function () {
-                            console.log("update success");
-                            $('#entityModal').modal('hide');
-                            loadEntities(attributeId);
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                            resetForm();
-                        },
-                        error: function (err) {
-                            console.error('Error updating entity:', err);
-                            validateEntitiesForm(err);
-                        }
-                    });
+                    updateEntity(attributeValueDto, name);
                 } else {
-                    console.log("create");
-                    console.log(`/attribute/${attributeId}/attributeValue/create`);
-                    attributeValueDto.id = null;
-                    $.ajax({
-                        url: `/attributeValue/create`,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(attributeValueDto),
-                        success: function () {
-                            loadEntities(attributeId);
-                            $('#entityModal').removeClass('show');
-                            $('.modal-backdrop').remove();
-                            resetForm();
-                        },
-                        error: function (err) {
-                            validateEntitiesForm(err);
-                            console.error('Error creating entity:', err);
-                        }
-                    });
+                    createNewEntity(attributeValueDto);
                 }
-            });
+            }
 
-            $(document).on('click', '.delete-entity-btn', function () {
+            function updateEntity(attributeValueDto, name) {
+                $.ajax({
+                    url: `/attributeValue/${name}`,
+                    method: 'PUT',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(attributeValueDto),
+                    success: function () {
+                        handleEntitySaveSuccess();
+                    },
+                    error: function (err) {
+                        console.error('Error updating entity:', err);
+                        validateEntitiesForm(err);
+                    }
+                });
+            }
+
+            function createNewEntity(attributeValueDto) {
+                attributeValueDto.id = null;
+                $.ajax({
+                    url: `/attributeValue/create`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(attributeValueDto),
+                    success: function () {
+                        handleEntitySaveSuccess();
+                    },
+                    error: function (err) {
+                        validateEntitiesForm(err);
+                        console.error('Error creating entity:', err);
+                    }
+                });
+            }
+
+            function handleEntitySaveSuccess() {
+                loadEntities();
+                $('#entityModal').removeClass('show');
+                $('.modal-backdrop').remove();
+                resetForm();
+            }
+
+            function handleDeleteEntity() {
                 const id = $(this).data('id');
                 $('#confirm-delete-btn').data('id', id);
-            });
+            }
 
-            $(document).on('click', '#confirm-delete-btn', function () {
+            function confirmDeleteEntity() {
                 const id = $(this).data('id');
 
                 $.ajax({
                     url: `/attributeValue/${id}`,
                     method: 'DELETE',
                     success: function () {
-                        $('#deleteConfirmModal').modal('hide');
-                        loadEntities(attributeId);
-                        $('#entityModal').removeClass('show');
-                        $('.modal-backdrop').remove();
+                        handleEntityDeleteSuccess();
                     },
                     error: function (err) {
                         console.error('Error deleting entity:', err);
                     }
                 });
-            });
+            }
 
-            function resetForm () {
+            function handleEntityDeleteSuccess() {
+                $('#deleteConfirmModal').modal('hide');
+                loadEntities();
+                $('#entityModal').removeClass('show');
+                $('.modal-backdrop').remove();
+            }
+
+            function resetForm() {
                 $('#entity-form')[0].reset();
-
                 $('#nameAttributeValue').val('');
                 $('#price').val('');
                 $('#priceWithDiscount').val('');
@@ -313,53 +345,56 @@
                 $('#save-entity-btn').data('id', '');
             }
 
-        });
-
-
-        function clearEntitiesFormError() {
-            $('.text-danger').html('');
-        }
-
-        function validateEntitiesForm(error) {
-            console.log(error);
-            const errorData = error.responseJSON;
-            for (const field in errorData) {
-                const errorMessage = errorData[field];
-                $(`#${field}Error`).text(errorMessage);
+            function clearEntitiesFormError() {
+                $('.text-danger').html('');
             }
-        }
 
-        function loadEntities(attributeId) {
-console.log(attributeId);
-            $.ajax({
-                url: `/attribute/${attributeId}/getAllValue`,
-                method: 'GET',
-                success: function (data) {
-                    console.log(data);
-                    const rows = data.map(entity => `
-            <tr>
-                <td class="text-center">${entity.name}</td>
-                <td class="text-center">${entity.description}</td>
-                <td class="text-center">${entity.price}</td>
-                <td class="text-center">${entity.priceWithDiscount}</td>
-                <td class="d-flex justify-content-center">
-                <button class="btn btn-sm btn-primary edit-entity-btn" data-id="${entity.name}" data-bs-toggle="modal" data-bs-target="#entityModal"><i class="ti ti-pencil"></i></button>
-                <button class="btn btn-sm btn-danger delete-entity-btn" data-id="${entity.name}" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"><i class="ti ti-trash"></i></button>
-                </td>
-                </tr>
-                `).join('');
-
-                    $('#table-body').html(rows);
-                },
-                error: function (err) {
-                    console.error('Error loading entities:', err);
+            function validateEntitiesForm(error) {
+                const errorData = error.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}Error`).text(errorMessage);
                 }
-            });
+            }
 
+            function loadEntities() {
+                $.ajax({
+                    url: `/attributeValue/getAll`,
+                    method: 'GET',
+                    success: function (data) {
+                        populateEntitiesTable(data);
+                    },
+                    error: function (err) {
+                        console.error('Error loading entities:', err);
+                    }
+                });
+            }
 
-        }
+            function populateEntitiesTable(data) {
+                const rows = data.map(entity => `
+                <tr>
+                    <td class="text-center">${entity.name}</td>
+                    <td class="text-center">${entity.description}</td>
+                    <td class="text-center">${entity.price}</td>
+                    <td class="text-center">${entity.priceWithDiscount}</td>
+                    <td class="d-flex justify-content-center">
+                        <button class="btn btn-sm btn-primary edit-entity-btn" data-id="${entity.name}" data-bs-toggle="modal" data-bs-target="#entityModal"><i class="ti ti-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger delete-entity-btn" data-id="${entity.name}" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"><i class="ti ti-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
 
+                $('#table-body').html(rows);
+            }
 
+            function populateEntityForm(entity) {
+                $('#nameAttributeValue').val(entity.name);
+                $('#price').val(entity.price);
+                $('#priceWithDiscount').val(entity.priceWithDiscount);
+                $('#description').val(entity.description);
+                $('#save-entity-btn').data('id', entity.name).attr('data-id', entity.id);
+            }
+        });
     </script>
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>

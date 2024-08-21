@@ -26,7 +26,7 @@ public interface CustomerService {
 
     Integer countTodayNewCustomers();
 
-    Double calculateActiveCustomersLastMonth();
+    Long getCountOfCustomersWithOrdersLastWeek();
 
     Double calculateChangesLastWeek();
 }

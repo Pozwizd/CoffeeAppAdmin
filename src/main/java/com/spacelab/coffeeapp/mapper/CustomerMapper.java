@@ -23,7 +23,7 @@ public class CustomerMapper {
         customer.setEmail(customerDto.getEmail());
         customer.setAddress(customerDto.getAddress());
         customer.setPhoneNumber(customerDto.getPhoneNumber());
-        customer.setLanguage(Language.valueOf(customerDto.getLanguage()));
+        customer.setLanguage(Language.valueOf(customerDto.getLanguage().toString()));
         customer.setDateOfBirth(customerDto.getDateOfBirth());
         customer.setStatus(CustomerStatus.valueOf(customerDto.getStatus()));
         return customer;
@@ -36,7 +36,7 @@ public class CustomerMapper {
         customerDto.setEmail(customer.getEmail());
         customerDto.setAddress(customer.getAddress());
         customerDto.setPhoneNumber(customer.getPhoneNumber());
-        customerDto.setLanguage(customer.getLanguage().getLanguageName());
+        customerDto.setLanguage(customer.getLanguage());
         customerDto.setDateOfBirth(customer.getDateOfBirth());
         customerDto.setStatus(customer.getStatus().toString());
         return customerDto;

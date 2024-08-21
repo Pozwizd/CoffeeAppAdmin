@@ -1,17 +1,28 @@
 package com.spacelab.coffeeapp.service.Imp;
 
+import com.spacelab.coffeeapp.dto.OrderItemDto;
 import com.spacelab.coffeeapp.dto.OrdersDto;
 import com.spacelab.coffeeapp.entity.Order;
+import com.spacelab.coffeeapp.entity.OrderItem;
 import com.spacelab.coffeeapp.mapper.OrderMapper;
 import com.spacelab.coffeeapp.repository.OrderRepository;
+import com.spacelab.coffeeapp.service.DeliveryService;
+import com.spacelab.coffeeapp.service.OrderItemAttributeService;
+import com.spacelab.coffeeapp.service.OrderItemService;
 import com.spacelab.coffeeapp.service.OrderService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.spacelab.coffeeapp.specification.OrderSpecification;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -20,6 +31,8 @@ public class OrderServiceImp implements OrderService {
 
     private final OrderMapper orderMapper;
     private final OrderRepository orderRepository;
+    private final DeliveryService deliveryService;
+    private final OrderItemService orderItemService;
     @Override
     public void saveOrder(Order order) {
         log.info("Save order: {}", order);
@@ -47,7 +60,6 @@ public class OrderServiceImp implements OrderService {
     public void updateOrder(Long id, Order order) {
         orderRepository.findById(id).map(order1 -> {
             order1.setDateTimeOfCreate(order.getDateTimeOfCreate());
-            order1.setDateTimeOfUpdate(order.getDateTimeOfUpdate());
             order1.setDateTimeOfReady(order.getDateTimeOfReady());
             order1.setDelivery(order.getDelivery());
             order1.setOrderItems(order.getOrderItems());
@@ -57,6 +69,11 @@ public class OrderServiceImp implements OrderService {
             orderRepository.save(order1);
             return order1;
         }).orElseThrow(() -> new RuntimeException("Order not found"));
+    }
+
+    @Override
+    public void updateOrderFromDto(Long id, OrdersDto order) {
+
     }
 
     @Override
@@ -73,20 +90,22 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public Page<Order> findAllOrders(int page, int pageSize) {
+    public Page<Order> findAllOrders(int page, int pageSize, String search) {
+        if (search != null && !search.isEmpty()) {
+            Pageable pageable = PageRequest.of(page, pageSize);
+            return orderRepository.findAll(OrderSpecification.byCustomerName(search).and(OrderSpecification.byNotDeleted()), pageable);
+        }
         return orderRepository.findAll(PageRequest.of(page, pageSize));
     }
 
     @Override
     public Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize) {
-        return orderMapper.toDto(findAllOrders(page, pageSize));
+        return null;
     }
 
-
-    // Добавить поиск по номеру телефона
     @Override
-    public Page<OrdersDto> findOrdersByRequest(int page, int pageSize, String search) {
-        return null;
+    public Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize, String search) {
+        return orderMapper.toDto(findAllOrders(page, pageSize, search));
     }
 
     @Override
@@ -108,6 +127,79 @@ public class OrderServiceImp implements OrderService {
     public Long calculateTodaySales() {
         return orderRepository.findAllDoneOrdersToday();
     }
+
+    @Override
+    public Order saveOrderFromDto(OrdersDto ordersDto) {
+        if (ordersDto.getId() != null) {
+            return orderRepository.findById(ordersDto.getId())
+                    .map(existingOrder -> updateOrder(existingOrder, ordersDto))
+                    .orElseThrow(() -> new RuntimeException("Order not found with id: " + ordersDto.getId()));
+        } else {
+            Order newOrder = createOrder(ordersDto);
+            return orderRepository.save(newOrder);
+        }
+    }
+
+    @Override
+    public List<OrdersDto> getLastOrdersForStatistics() {
+        List<Order> orders = orderRepository.findAll();
+        orders.stream().map(orderRepository::save);
+        return orderMapper.toDto(orderRepository.getLastOrdersForStatistics());
+    }
+
+    private Order updateOrder(Order existingOrder, OrdersDto ordersDto) {
+        applyOrderDtoToOrder(existingOrder, ordersDto);
+
+        Order savedOrder = orderRepository.save(existingOrder);
+
+        Set<Long> updatedOrderItemIds = ordersDto.getOrderItemsDto().stream()
+                .map(OrderItemDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        List<OrderItem> currentOrderItems = savedOrder.getOrderItems();
+
+        List<OrderItem> itemsToRemove = currentOrderItems.stream()
+                .filter(item -> !updatedOrderItemIds.contains(item.getId()))
+                .collect(Collectors.toList());
+
+        if (!itemsToRemove.isEmpty()) {
+
+            savedOrder.getOrderItems().removeAll(itemsToRemove);
+            boolean deletedNonexistent = orderItemService.deleteAll(itemsToRemove);
+        }
+
+        List<OrderItem> orderItems = ordersDto.getOrderItemsDto().stream()
+                .map(orderItemDto -> orderItemService.saveOrderItem(orderItemDto, savedOrder))
+                .collect(Collectors.toList());
+
+        savedOrder.setOrderItems(orderItems);
+        return orderRepository.save(savedOrder);
+    }
+
+
+    private Order createOrder(OrdersDto ordersDto) {
+        Order newOrder = new Order();
+        applyOrderDtoToOrder(newOrder, ordersDto);
+        List<OrderItem> orderItems = ordersDto.getOrderItemsDto().stream()
+                .map(orderItemDto -> orderItemService.saveOrderItem(orderItemDto, newOrder))
+                .collect(Collectors.toList());
+        newOrder.setOrderItems(orderItems);
+        return newOrder;
+    }
+
+    private void applyOrderDtoToOrder(Order order, OrdersDto ordersDto) {
+        order.setDateTimeOfCreate(ordersDto.getDateTimeOfCreate());
+        order.setDateTimeOfReady(ordersDto.getDateTimeOfReady());
+        if (ordersDto.getDeliveryDto() != null) {
+            order.setDelivery(deliveryService.saveDelivery(ordersDto.getDeliveryDto()));
+        } else {
+            order.setDelivery(null);
+        }
+        order.setPayment(ordersDto.getPayment());
+        order.setStatus(ordersDto.getStatus());
+    }
+
 
 
 }

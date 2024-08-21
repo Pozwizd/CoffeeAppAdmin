@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -33,14 +34,14 @@ public class AttributeValueServiceImp implements AttributeValueService {
     }
 
     @Override
-    public AttributeValue getAttributeValue(Long id) {
+    public Optional<AttributeValue> getAttributeValue(Long id) {
         log.info("Fetching attributeValue with id: {}", id);
-        return attributeValueRepository.findById(id).get();
+        return attributeValueRepository.findById(id);
     }
 
     @Override
     public AttributeValueDto getAttributeValueDto(Long id) {
-        return attributeValueMapper.toDto(getAttributeValue(id));
+        return attributeValueMapper.toDto(getAttributeValue(id).get());
     }
 
     @Override

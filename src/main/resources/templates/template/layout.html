@@ -67,46 +67,63 @@
                 <!-- Page -->
                 <li th:classappend="${pageActive == 'statistic' ? 'active' : ''}" class="menu-item" >
                     <a th:href="@{/}" class="menu-link active">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <i class="menu-icon tf-icons ti ti-chart-pie"></i>
                         <div>Статистика</div>
                     </a>
                 </li>
                 <li th:classappend="${pageActive == 'customers' ? 'active' : ''}" class="menu-item">
                     <a th:href="@{/customer}" class="menu-link" >
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <i class="menu-icon tf-icons ti ti-users"></i>
                         <div>Клиенты</div>
                     </a>
                 </li>
-                <li th:classappend="${pageActive == 'categories' ? 'active' : ''}" class="menu-item" >
-                    <a th:href="@{/category}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
-                        <div>Категории</div>
-                    </a>
-                </li>
-                <li th:classappend="${pageActive == 'products' ? 'active' : ''}" class="menu-item" >
-                    <a th:href="@{/product}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+
+                <li class="menu-item" th:classappend="${pageActive == 'products' || pageActive == 'categories' || pageActive == 'attributeProduct' ? 'active open' : ''}">
+                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                        <i class="menu-icon tf-icons ti ti-coffee"></i>
                         <div>Продукты</div>
                     </a>
+                    <ul class="menu-sub">
+                        <li th:classappend="${pageActive == 'categories' ? 'active' : ''}" class="menu-item" >
+                            <a th:href="@{/category}" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-app-window"></i>
+                                <div>Категории</div>
+                            </a>
+                        </li>
+                        <li th:classappend="${pageActive == 'products' ? 'active' : ''}" class="menu-item" >
+                            <a th:href="@{/product}" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-app-window"></i>
+                                <div>Продукты</div>
+                            </a>
+                        </li>
+                        <li class="menu-item" th:classappend="${pageActive == 'attributeProduct' ? 'active' : ''}" >
+                            <a th:href="@{/attribute}" class="menu-link">
+                                <i class="menu-icon tf-icons ti ti-app-window"></i>
+                                <div>Свойства продуктов</div>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+
                 <li th:classappend="${pageActive == 'order' ? 'active' : ''}" class="menu-item">
                     <a th:href="@{/order}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <i class="menu-icon tf-icons ti ti-shopping-cart"></i>
                         <div>Заказы</div>
                     </a>
                 </li>
                 <li th:classappend="${pageActive == 'locations' ? 'active' : ''}" class="menu-item" >
                     <a th:href="@{/location}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <i class="menu-icon tf-icons ti ti-map-pin"></i>
                         <div>Локации</div>
                     </a>
                 </li>
                 <li class="menu-item" th:classappend="${pageActive == 'users' ? 'active' : ''}">
                     <a th:href="@{/user/}" class="menu-link">
-                        <i class="menu-icon tf-icons ti ti-app-window"></i>
+                        <i class="menu-icon tf-icons ti ti-user"></i>
                         <div>Пользователи</div>
                     </a>
                 </li>
+
             </ul>
         </aside>
         <!-- / Menu -->
