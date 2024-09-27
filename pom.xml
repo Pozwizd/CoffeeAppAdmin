@@ -8,13 +8,20 @@
         <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.spacelab</groupId>
-    <artifactId>CoffeeApp</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>CoffeeApp</name>
-    <description>CoffeeApp</description>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>${project.artifactId}</artifactId>
+    <version>${project.version}</version>
+    <packaging>${project.packaging}</packaging>
+    <name>${project.name}</name>
+    <description>${project.description}</description>
     <properties>
         <java.version>17</java.version>
+        <project.groupId>spaceLab</project.groupId>
+        <project.artifactId>CoffeeApp</project.artifactId>
+        <project.version>latest</project.version>
+        <project.packaging>war</project.packaging>
+        <project.name>CoffeeApp</project.name>
+        <project.description>CoffeeApp</project.description>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
