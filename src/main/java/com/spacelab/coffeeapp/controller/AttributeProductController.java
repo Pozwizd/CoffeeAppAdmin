@@ -2,18 +2,11 @@ package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.dto.AttributeProductDto;
 import com.spacelab.coffeeapp.dto.AttributeValueDto;
-import com.spacelab.coffeeapp.dto.ProductDto;
 import com.spacelab.coffeeapp.entity.AttributeProduct;
-import com.spacelab.coffeeapp.entity.AttributeValue;
-import com.spacelab.coffeeapp.entity.Product;
-import com.spacelab.coffeeapp.mapper.CategoryMapper;
-import com.spacelab.coffeeapp.mapper.ProductMapper;
 import com.spacelab.coffeeapp.service.AttributeProductService;
-import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -77,25 +67,31 @@ public class AttributeProductController {
         model.addAttribute("attributeProduct", attributeProductDto);
         model.addAttribute("products", productService.getAllProductsDto());
         model.addAttribute("typeAttribute", AttributeProduct.TypeAttribute.values());
-        session.setAttribute("attributeProduct", attributeProductDto);
-        return new ModelAndView("attribute/attributeProduct");
+        return new ModelAndView("attribute/attributeProduct").addObject("attributeProduct", attributeProductDto);
     }
 
+
     @PostMapping({"/create", "/{attributeId}"})
-    public ModelAndView createAttributeProduct(@Valid @ModelAttribute("attributeProduct") AttributeProductDto attributeProductDto,
-                                               BindingResult bindingResult, Model model, @PathVariable String attributeId, HttpSession session) {
-        if (bindingResult.hasErrors()) {
-            List<FieldError> errors = bindingResult.getFieldErrors().stream()
-                    .filter(error -> !Objects.equals(error.getRejectedValue(), ""))
-                    .collect(Collectors.toList());
-            model.addAttribute("errors", errors);
-            return new ModelAndView("attribute/attributeProduct");
+    @ResponseBody
+    public ResponseEntity<?> createAttributeProduct(@Valid @RequestBody AttributeProductDto attributeProductDto, @PathVariable String attributeId) {
+
+        Boolean result = attributeProductService.saveAttributeProductFromDto(attributeProductDto);
+        System.out.println(result);
+        if (result) {
+            return ResponseEntity.ok().build();
         }
-        AttributeProductDto attributeProduct = (AttributeProductDto) session.getAttribute("attributeProduct");
-        attributeProductDto.setAttributeValues(attributeProduct.getAttributeValues());
-        attributeProductService.saveAttributeProductFromDto(attributeProductDto);
-        return new ModelAndView("redirect:/attribute");
+        return ResponseEntity.badRequest().build();
+
     }
+
+    @PostMapping({"/attributeValue/validate"})
+    @ResponseBody
+    public ResponseEntity<?> createAttributeProductValue(@Valid @RequestBody AttributeValueDto attributeProductDto) {
+        return ResponseEntity.ok().build();
+
+    }
+
+
 
     @ResponseBody
     @GetMapping("/{attributeId}/values")
@@ -104,13 +100,9 @@ public class AttributeProductController {
         return attributeProductDto.getAttributeValues();
     }
 
-
     @ResponseBody
     @GetMapping("/getAttributesByProduct/{productId}")
     public List<AttributeProductDto> getAttributesByProduct(@PathVariable Long productId) {
-
         return attributeProductService.getAttributesByProduct(productId);
     }
-
-
 }

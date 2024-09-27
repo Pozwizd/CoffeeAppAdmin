@@ -1,8 +1,7 @@
 package com.spacelab.coffeeapp.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +10,9 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "product")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,11 +26,13 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    // Уникальное ограничение на связку product_id и attribute_product_id
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinTable(
             name = "product_attribute_product",
             joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "attribute_product_id")
+            inverseJoinColumns = @JoinColumn(name = "attribute_product_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "attribute_product_id"})
     )
     private List<AttributeProduct> attributeProducts = new ArrayList<>();
 

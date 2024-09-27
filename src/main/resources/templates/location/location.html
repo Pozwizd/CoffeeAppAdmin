@@ -443,11 +443,10 @@
 
             function validateEntitiesForm(err) {
                 clearEntitiesFormError();
-                if (err.responseJSON && err.responseJSON.errors) {
-                    const errors = err.responseJSON.errors;
-                    errors.forEach(error => {
-                        $(`#${error.field}Error`).text(error.defaultMessage);
-                    });
+                const errorData = err.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}Error`).text(errorMessage);
                 }
             }
 

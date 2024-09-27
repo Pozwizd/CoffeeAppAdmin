@@ -2,7 +2,6 @@ package com.spacelab.coffeeapp.controller;
 
 import com.spacelab.coffeeapp.dto.CustomerDto;
 import com.spacelab.coffeeapp.entity.*;
-import com.spacelab.coffeeapp.mapper.CustomerMapper;
 import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.CustomerService;
 import jakarta.validation.Valid;
@@ -11,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -23,7 +23,6 @@ public class CustomerController {
 
     private final CityService cityService;
     private final CustomerService customerService;
-    private final CustomerMapper customerMapper;
 
 
     @ModelAttribute
@@ -57,33 +56,26 @@ public class CustomerController {
     public Page<CustomerDto> getEntities(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "") String search,
                                          @RequestParam(defaultValue = "5") Integer size) {
-        if (search.isEmpty()) {
-            Page<Customer> allCustomer = customerService.findAllCustomer(page, size);
-            return customerMapper.toDtoListPage(allCustomer);
-        } else {
-            Page<Customer> allCustomer = customerService.findCustomerByRequest(page, size, search);
-            return customerMapper.toDtoListPage(allCustomer);
-        }
+        return customerService.findCustomersPageByRequest(page, size, search);
     }
 
     @GetMapping("/{id}")
     @ResponseBody
     public CustomerDto getEntity(@PathVariable Long id) {
-        return customerMapper.toDto(customerService.getCustomer(id));
+        return customerService.getCustomerDto(id);
     }
 
     @PostMapping({"/", ""})
     @ResponseBody
-    public ResponseEntity<?> createEntity(@RequestBody CustomerDto customerDto) {
-        customerService.saveCustomer(customerMapper.toEntity(customerDto));
+    public ResponseEntity<ResponseStatus> createEntity(@Valid @RequestBody CustomerDto customerDto) {
+        customerService.saveCustomer(customerDto);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<?> updateEntity(@PathVariable Long id, @Valid @RequestBody CustomerDto customerDto)
-    {
-        customerService.updateCustomer(id, customerMapper.toEntity(customerDto));
+    public ResponseEntity<ResponseStatus> updateEntity(@PathVariable Long id, @Valid @RequestBody CustomerDto customerDto) {
+        customerService.updateCustomer(id, customerDto);
         return ResponseEntity.ok().build();
     }
 

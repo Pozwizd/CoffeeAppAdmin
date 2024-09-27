@@ -24,7 +24,6 @@ public class LocationController {
 
     private final LocationService locationService;
     private final CityService cityService;
-    private final LocationMapper locationMapper;
 
     @ModelAttribute
     public void addAttributes(Model model) {
@@ -47,23 +46,19 @@ public class LocationController {
     public Page<LocationDto> getEntities(@RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "") String search,
                                   @RequestParam(defaultValue = "5") Integer size) {
-        if (search.isEmpty()) {
-            return locationMapper.toDtoListPage(locationService.findAllLocations(page, size));
-        } else {
-            return locationMapper.toDtoListPage(locationService.findLocationsByRequest(page, size, search));
-        }
+        return locationService.getPagedAllLocationsDto(page, size, search);
     }
 
     @GetMapping("/{id}")
     @ResponseBody
     public LocationDto getEntity(@PathVariable Long id) {
-        return locationMapper.toDto(locationService.getLocation(id));
+        return locationService.getLocationDto(id);
     }
 
     @PostMapping({"/", ""})
     @ResponseBody
     public ResponseEntity<?> createEntity(@RequestBody LocationDto location) {
-        locationService.saveLocation(locationMapper.toEntity(location));
+        locationService.saveFromLocationDto(location);
         return ResponseEntity.ok().build();
     }
 
@@ -71,7 +66,7 @@ public class LocationController {
     @ResponseBody
     public ResponseEntity<?> updateEntity(@PathVariable Long id, @Valid @RequestBody LocationDto location)
     {
-        locationService.updateLocation(id, locationMapper.toEntity(location));
+        locationService.updateLocationFromDto(id, location);
         return ResponseEntity.ok().build();
     }
 

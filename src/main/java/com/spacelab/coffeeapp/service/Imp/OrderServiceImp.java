@@ -2,27 +2,29 @@ package com.spacelab.coffeeapp.service.Imp;
 
 import com.spacelab.coffeeapp.dto.OrderItemDto;
 import com.spacelab.coffeeapp.dto.OrdersDto;
+import com.spacelab.coffeeapp.entity.Customer;
+import com.spacelab.coffeeapp.entity.Delivery;
 import com.spacelab.coffeeapp.entity.Order;
 import com.spacelab.coffeeapp.entity.OrderItem;
 import com.spacelab.coffeeapp.mapper.OrderMapper;
 import com.spacelab.coffeeapp.repository.OrderRepository;
 import com.spacelab.coffeeapp.service.DeliveryService;
-import com.spacelab.coffeeapp.service.OrderItemAttributeService;
 import com.spacelab.coffeeapp.service.OrderItemService;
 import com.spacelab.coffeeapp.service.OrderService;
+import com.spacelab.coffeeapp.specification.OrderSpecification;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.spacelab.coffeeapp.specification.OrderSpecification;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
@@ -66,15 +68,14 @@ public class OrderServiceImp implements OrderService {
             order1.setPayment(order.getPayment());
             order1.setCustomer(order.getCustomer());
             order1.setStatus(order.getStatus());
+            if(order.getStatus().equals(Order.OrderStatus.DONE)) {
+                order1.getCustomer().setBonusPoints(order1.getCustomer().getBonusPoints() + order1.getTotalAmount()*0.005);
+            }
             orderRepository.save(order1);
             return order1;
         }).orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
-    @Override
-    public void updateOrderFromDto(Long id, OrdersDto order) {
-
-    }
 
     @Override
     public void deleteOrder(Order order) {
@@ -143,8 +144,25 @@ public class OrderServiceImp implements OrderService {
     @Override
     public List<OrdersDto> getLastOrdersForStatistics() {
         List<Order> orders = orderRepository.findAll();
-        orders.stream().map(orderRepository::save);
+        Stream<Order> orderStream = orders.stream().map(orderRepository::save);
         return orderMapper.toDto(orderRepository.getLastOrdersForStatistics());
+    }
+
+    @Override
+    public List<Order> CancelAllOrdersByCustomer(Customer customer1) {
+        List<Order> orders = orderRepository.findByCustomerAndStatusNot(customer1, Order.OrderStatus.DONE);
+
+        if (orders == null || orders.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        orders.forEach(order -> {
+            order.setStatus(Order.OrderStatus.CANCELLED);
+            if (order.getDelivery() != null) {
+                order.getDelivery().setStatus(Delivery.DeliveryStatus.CANCELLED);
+            }
+        });
+        return orderRepository.saveAll(orders);
     }
 
     private Order updateOrder(Order existingOrder, OrdersDto ordersDto) {
@@ -185,6 +203,9 @@ public class OrderServiceImp implements OrderService {
                 .map(orderItemDto -> orderItemService.saveOrderItem(orderItemDto, newOrder))
                 .collect(Collectors.toList());
         newOrder.setOrderItems(orderItems);
+        if(newOrder.getStatus().equals(Order.OrderStatus.DONE)) {
+            newOrder.getCustomer().setBonusPoints(newOrder.getCustomer().getBonusPoints() + newOrder.getTotalAmount()*0.005);
+        }
         return newOrder;
     }
 
@@ -199,7 +220,4 @@ public class OrderServiceImp implements OrderService {
         order.setPayment(ordersDto.getPayment());
         order.setStatus(ordersDto.getStatus());
     }
-
-
-
 }

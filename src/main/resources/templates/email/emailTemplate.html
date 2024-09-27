@@ -1,69 +1,76 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-  <title>Сброс пароля</title>
-  <meta name="description" content="Шаблон письма для сброса пароля.">
-  <style type="text/css">
-    a:hover { text-decoration: underline !important; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Восстановление пароля</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+      color: #4CAF50;
+    }
+    .content {
+      text-align: center;
+      padding: 20px;
+    }
+    .content p {
+      font-size: 16px;
+      margin: 0 0 20px;
+    }
+    .button {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      font-size: 14px;
+      color: #777;
+    }
   </style>
 </head>
-
-<body marginheight="0" topmargin="0" marginwidth="0" style="margin: 0; background-color: #f2f3f8;" leftmargin="0">
-<!--100% body table-->
-<table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="#f2f3f8"
-       style="font-family: 'Open Sans', sans-serif;">
-  <tr>
-    <td>
-      <table style="background-color: #f2f3f8; max-width: 670px; margin: 0 auto;" width="100%" border="0"
-             align="center" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="height: 80px;">&nbsp;</td>
-        </tr>
-        <tr>
-          <td style="height: 20px;">&nbsp;</td>
-        </tr>
-        <tr>
-          <td>
-            <table width="95%" border="0" align="center" cellpadding="0" cellspacing="0"
-                   style="max-width: 670px; background: #fff; border-radius: 3px; text-align: center; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);">
-              <tr>
-                <td style="height: 40px;">&nbsp;</td>
-              </tr>
-              <tr>
-                <td style="padding: 0 35px;">
-                  <h1 style="color: #1e1e2d; font-weight: 500; margin: 0; font-size: 32px;">Запрос на сброс пароля</h1>
-                  <span
-                          style="display: inline-block; vertical-align: middle; margin: 29px 0 26px; border-bottom: 1px solid #cecece; width: 100px;"></span>
-                  <p style="color: #455056; font-size: 15px; line-height: 24px; margin: 0;">
-                    Мы отправили это письмо в ответ на запрос на установку нового пароля. Ссылка для изменения пароля будет действительна в течение одного часа.
-                  </p>
-                  <p style="color: #455056; font-size: 15px; line-height: 24px; margin: 0;">
-                    Чтобы изменить пароль, пожалуйста, перейдите по ссылке ниже.
-                  </p>
-                  <a th:href="${link}" style="background: #007BFF; text-decoration: none; font-weight: 500; margin-top: 35px; color: #fff; text-transform: uppercase; font-size: 14px; padding: 10px 24px; display: inline-block; border-radius: 50px;">
-                    Установить пароль
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td style="height: 40px;">&nbsp;</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="height: 20px;">&nbsp;</td>
-        </tr>
-        <tr>
-          <td style="height: 80px;">&nbsp;</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<!--/100% body table-->
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Восстановление пароля</h1>
+  </div>
+  <div class="content">
+    <p>Здравствуйте,</p>
+    <p>Мы получили запрос на восстановление пароля для вашей учетной записи. Пожалуйста, нажмите кнопку ниже, чтобы установить новый пароль.</p>
+    <a th:href="${link}" class="button">Установить пароль</a>
+  </div>
+  <div class="footer">
+    <p>Если вы не делали запрос на восстановление пароля, просто проигнорируйте это письмо.</p>
+  </div>
+</div>
 </body>
-
 </html>

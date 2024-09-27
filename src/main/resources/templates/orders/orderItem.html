@@ -66,7 +66,8 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Доставка</span>
                         <div>
-                            <button class="btn btn-custom btn-sm" data-bs-toggle="modal" onclick="openModalDelivery()" id="editDelivery"
+                            <button class="btn btn-custom btn-sm" data-bs-toggle="modal" onclick="openModalDelivery()"
+                                    id="editDelivery"
                                     data-bs-target="#deliveryModal">
                                 <i class="ti ti-edit"></i>
                             </button>
@@ -116,7 +117,7 @@
                         <h5 class="modal-title" id="deliveryModalLabel">Редактирование доставки</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body" >
+                    <div class="modal-body">
                         <form>
                             <div class="row g-2">
                                 <div class="col mb-0">
@@ -235,7 +236,9 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="save-delivery-btn">Save changes</button>
+                        <button type="button" class="btn btn-primary" id="save-delivery-btn"
+                                data-bs-dismiss="modal"
+                                aria-label="Close">Save changes</button>
                     </div>
                 </div>
             </div>
@@ -257,6 +260,62 @@
                 loadStatusDelivery()
             })
 
+            $(document).ready(function () {
+                $('#category, #product, #quantity').on('change input', function () {
+                    validateField($(this));
+                });
+
+                function validateField(element) {
+                    let isValid = true;
+                    let errorElement = $('#' + element.attr('id') + 'Error');
+
+                    if (element.val() === '' || element.val() === null) {
+                        isValid = false;
+                        errorElement.text('Это поле обязательно для заполнения.');
+                        element.addClass('is-invalid');
+                    } else if (element.attr('id') === 'quantity' && (parseInt(element.val()) <= 0)) {
+                        isValid = false;
+                        errorElement.text('Количество должно быть положительным числом.');
+                        element.addClass('is-invalid');
+                    } else {
+                        errorElement.text('');
+                        element.removeClass('is-invalid');
+                        element.addClass('is-valid');
+                    }
+
+                    return isValid;
+                }
+
+                $('#save-entity-btn').on('click', function () {
+                    let isFormValid = true;
+                    $('#category, #product, #quantity').each(function () {
+                        if (!validateField($(this))) {
+                            isFormValid = false;
+                        }
+                    });
+                    if (isFormValid) {
+                        const itemId = $('#idOrderItem').val();
+                        if (itemId) {
+                            editOrderItem(itemId);
+                        } else {
+                            saveOrderItem();
+                        }
+                    }
+                });
+            });
+
+            $('#orderItemModal').on('hidden.bs.modal', function () {
+                resetFormValidation();
+            });
+
+            function resetFormValidation() {
+                $('#entity-form').find('.is-invalid').removeClass('is-invalid');
+                $('#entity-form').find('.is-valid').removeClass('is-valid');
+                $('#entity-form').find('.text-danger').text('');
+                $('#entity-form')[0].reset();
+            }
+
+
             function initializeEventHandlers() {
                 $('#category').on('change', function () {
                     setProduct($('#category'));
@@ -265,16 +324,7 @@
                 $('#product').on('change', function () {
                     setAttributeProduct($('#product'));
                 });
-                $('#save-entity-btn').on('click', function () {
-                    const itemId = $('#idOrderItem').val();
 
-                    console.log(itemId);
-                    if (itemId) {
-                        editOrderItem(itemId);
-                    } else {
-                        saveOrderItem();
-                    }
-                });
                 $('#save-payment-btn').on('click', function () {
                     savePayment();
                 });
@@ -311,7 +361,6 @@
                     contentType: 'application/json',
                     success: function (data) {
                         console.log(data);
-                        // Go to back page
                         window.history.back();
                     },
                     error: function (data) {
@@ -328,6 +377,7 @@
                 $('#product').empty();
                 $('#quantity').val('');
                 $('#attributes').empty();
+                resetFormValidation();
             }
 
             function loadOrderTable() {
@@ -374,12 +424,72 @@
                 $('#deliveryTableApartment').text(response.deliveryDto.apartment);
             }
 
+
+            function saveOrderItem() {
+                console.log("work saveOrderItem");
+                let attributes = [];
+                $('select[name="attributeProduct[]"]').each(function (index, element) {
+                    attributes.push({
+                        id: null,
+                        orderItemId: null,
+                        productAttributeId: parseInt($(this).val()),
+                        attributeValueId: parseInt($('select[name="attributeValue[]"]').eq(index).val())
+                    });
+                });
+
+                let data = {
+                    id: null,
+                    categoryId: parseInt($('#category').val()),
+                    productId: parseInt($('#product').val()),
+                    productName: $('#product option:selected').text(),
+                    quantity: parseInt($('#quantity').val()),
+                    attributes: attributes
+                };
+
+                order.orderItemsDto.push(data);
+                $('#orderItemModal').modal('hide');
+                $('.modal-backdrop').remove();
+                recalculationAmount(loadOrderTable);
+            }
+
+            function editOrderItem(itemId) {
+                order.orderItemsDto[itemId].categoryId = parseInt($('#category').val());
+                order.orderItemsDto[itemId].productId = parseInt($('#product').val());
+                console.log($('#quantity').val());
+                console.log(order.orderItemsDto[itemId].quantity);
+                order.orderItemsDto[itemId].quantity = $('#quantity').val();
+                $('select[name="attributeProduct[]"]').each(function (index, element) {
+                    if (!Array.isArray(order.orderItemsDto[itemId].attributes)) {
+                        order.orderItemsDto[itemId].attributes = [];
+                    }
+                    if (typeof order.orderItemsDto[itemId].attributes[index] === 'undefined') {
+                        order.orderItemsDto[itemId].attributes[index] = {};
+                    }
+                    order.orderItemsDto[itemId].attributes[index].productAttributeId = parseInt($('select[name="attributeProduct[]"]').eq(index).val());
+                    order.orderItemsDto[itemId].attributes[index].attributeValueId = parseInt($('select[name="attributeValue[]"]').eq(index).val());
+                });
+                $('#orderItemModal').modal('hide');
+                $('.modal-backdrop').remove();
+                recalculationAmount(loadOrderTable);
+            }
+
+            function deleteOrderItem(index) {
+                if (index >= 0 && index < order.orderItemsDto.length) {
+                    console.log("Deleted order item with ID:", order.orderItemsDto[index].id);
+                    order.orderItemsDto.splice(index, 1);
+                    recalculationAmount(loadOrderTable);
+                } else {
+                    console.error("Index out of range");
+                }
+            }
+
             async function openModalOrderItem(itemId) {
+                resetFormValidation();
                 let response = order.orderItemsDto[itemId];
 
                 console.log("Item:", response);
                 if (response) {
-                    $('#idOrderItem').val(response.id);
+                    $('#idOrderItem').val(itemId);
                     $('#category').val(response.categoryId);
                     await setProduct($('#category'));
 
@@ -412,11 +522,11 @@
                                 response.forEach(product => {
                                     $('#product').append(`<option value="${product.id}">${product.name}</option>`);
                                 });
-                                resolve();  // Успешное завершение
+                                resolve();
                             },
                             error: function (err) {
                                 console.log('Error loading products:', err);
-                                reject(err);  // Ошибка
+                                reject(err);
                             }
                         });
                     } else {
@@ -458,11 +568,11 @@
                         `);
                                     $('#attributes').append(attributeContainer);
                                 });
-                                resolve();  // Успешное завершение
+                                resolve();
                             },
                             error: function (err) {
                                 console.log('Error loading attributes:', err);
-                                reject(err);  // Ошибка
+                                reject(err);
                             }
                         });
                     } else {
@@ -488,76 +598,13 @@
                     }
                 });
             }
-            function saveOrderItem() {
-                console.log("work saveOrderItem");
-                let attributes = [];
-                $('select[name="attributeProduct[]"]').each(function (index, element) {
-                    attributes.push({
-                        id: null,
-                        orderItemId: null,
-                        productAttributeId: parseInt($(this).val()),
-                        attributeValueId: parseInt($('select[name="attributeValue[]"]').eq(index).val())
-                    });
-                });
 
-                let data = {
-                    id: null,
-                    categoryId: parseInt($('#category').val()),
-                    productId: parseInt($('#product').val()),
-                    productName: $('#product option:selected').text(),
-                    quantity: parseInt($('#quantity').val()) ,
-                    attributes: attributes
-                };
-
-                order.orderItemsDto.push(data);
-                $('#orderItemModal').modal('hide');
-                $('.modal-backdrop').remove();
-                recalculationAmount();
-                loadOrderTable();
-            }
-            function editOrderItem(itemId) {
-                console.log("work editOrderItem");
-                for (let i = 0; i < order.orderItemsDto.length; i++) {
-                    if (order.orderItemsDto[i].id === parseInt(itemId)) {
-                        order.orderItemsDto[i].categoryId = parseInt($('#category').val());
-                        order.orderItemsDto[i].productId = parseInt($('#product').val());
-                        console.log($('#quantity').val());
-                        console.log(order.orderItemsDto[i].quantity);
-                        order.orderItemsDto[i].quantity = $('#quantity').val();
-                        $('select[name="attributeProduct[]"]').each(function (index, element) {
-                            if (!Array.isArray(order.orderItemsDto[i].attributes)) {
-                                order.orderItemsDto[i].attributes = [];
-                            }
-                            if (typeof order.orderItemsDto[i].attributes[index] === 'undefined') {
-                                order.orderItemsDto[i].attributes[index] = {};
-                            }
-
-                            // Присваиваем значения
-                            order.orderItemsDto[i].attributes[index].productAttributeId = parseInt($('select[name="attributeProduct[]"]').eq(index).val());
-                            order.orderItemsDto[i].attributes[index].attributeValueId = parseInt($('select[name="attributeValue[]"]').eq(index).val());
-                        });
-                        break;
-                    }
-                }
-                $('#orderItemModal').modal('hide');
-                $('.modal-backdrop').remove();
-                recalculationAmount(loadOrderTable);
-            }
-            function deleteOrderItem(index) {
-                if (index >= 0 && index < order.orderItemsDto.length) {
-                    console.log("Deleted order item with ID:", order.orderItemsDto[index].id);
-                    order.orderItemsDto.splice(index, 1);
-                    recalculationAmount(loadOrderTable);
-                } else {
-                    console.error("Index out of range");
-                }
-            }
             function recalculationAmount(callback) {
                 let totalAmount = 0;
                 $.ajax({
                     url: '/attributeValue/getAllForOrder',
                     method: 'GET',
-                    success: function(response) {
+                    success: function (response) {
                         order.orderItemsDto.forEach(item => {
                             item.attributes.forEach(attribute => {
                                 let attributeValue = response.find(value => value.id == attribute.attributeValueId);
@@ -573,10 +620,9 @@
                         order.totalAmount = totalAmount;
                         console.log("Total Amount:", order.totalAmount);
 
-                        // Вызов callback после пересчета суммы
-                        if(callback) callback();
+                        if (callback) callback();
                     },
-                    error: function(err) {
+                    error: function (err) {
                         console.log('Error loading order:', err);
                     }
                 });
@@ -601,10 +647,12 @@
                     }
                 });
             }
+
             function openModalPayment() {
                 $('#paymentType').val(order.payment)
                 $('#orderStatus').val(order.status)
             }
+
             function savePayment() {
                 order.payment = $('#paymentType').val();
                 order.status = $('#orderStatus').val();
@@ -612,6 +660,7 @@
                 $('.modal-backdrop').remove();
                 loadOrderTable();
             }
+
             function loadCitiesForDelivery() {
                 $.ajax({
                     url: '/order/getCities',
@@ -626,6 +675,7 @@
                     }
                 });
             }
+
             function openModalDelivery() {
                 let response = order.deliveryDto;
                 $('#nameDelivery').val(response.name);
@@ -640,6 +690,7 @@
                 $('#changeAmount').val(response.changeAmount);
                 $('#statusDelivery').val(response.status.toString());
             }
+
             function saveDelivery() {
                 order.deliveryDto.name = $('#nameDelivery').val();
                 order.deliveryDto.phoneNumber = $('#phoneNumberDelivery').val();
@@ -652,9 +703,14 @@
                 order.deliveryDto.deliveryTime = $('#timeDelivery').val();
                 order.deliveryDto.changeAmount = $('#changeAmount').val();
                 order.deliveryDto.status = $('#statusDelivery').val();
-                $('#deliveryModal').modal('hide');
-                $('.modal-backdrop').remove();
-                loadOrderTable();
+
+                // Закрытие модального окна с помощью Bootstrap
+                var modal = bootstrap.Modal.getInstance(document.getElementById('deliveryModal'));
+                if (modal) {
+                    modal.hide(); // Закрываем модальное окно
+                }
+
+                loadOrderTable(); // Загружаем таблицу заказов
             }
             function deleteDelivery() {
                 order.deliveryDto = null;
@@ -662,7 +718,6 @@
                 $('.modal-backdrop').remove();
                 loadOrderTable();
             }
-
 
             function loadTypePayment() {
                 $.ajax({
@@ -677,6 +732,7 @@
                     }
                 });
             }
+
             function loadStatusOrder() {
                 $.ajax({
                     url: '/order/status',

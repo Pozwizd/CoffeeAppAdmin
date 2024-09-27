@@ -1,6 +1,7 @@
 package com.spacelab.coffeeapp.service;
 
 import com.spacelab.coffeeapp.dto.DeliveryDto;
+import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.Delivery;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,19 @@ public interface DeliveryService {
 
     public Delivery getDelivery(Long id);
 
+    public DeliveryDto getDeliveryDto(Long id);
+
     public List<Delivery> getAllDeliveries();
 
     public void deleteDelivery(Delivery delivery);
 
     public void deleteDelivery(Long id);
 
-    public Page findAllDeliveries(int page, int pageSize);
+    public Page<Delivery> findAllDeliveries(int page, int pageSize);
 
-    public Page findDeliveriesByRequest(int page, int pageSize, String search);
+    public Page<DeliveryDto> findAllDeliveryDtos(int page, int pageSize);
 
     public long countDeliveries();
+
 
 }

@@ -16,18 +16,10 @@ import java.util.Map;
 @AllArgsConstructor
 public class StatisticsController {
 
-    private final UserService userService;
-    private final CategoryService categoryService;
+
     private final ProductService productService;
     private final CustomerService customerService;
-    private final CityService cityService;
-    private final LocationService locationService;
     private final OrderService orderService;
-    private final DeliveryService deliveryService;
-    private final OrderItemService orderItemService;
-    private final AttributeValueService attributeValueService;
-    private final AttributeProductService attributeProductService;
-    private final OrderItemAttributeService orderItemAttributeService;
 
 
 

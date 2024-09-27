@@ -103,9 +103,8 @@ public class CategoryServiceImp implements CategoryService {
     @Override
     public Page<Category> findCategoryByRequest(int page, int pageSize, String search) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Specification<Category> specification = new CategorySpecification(search);
         log.info("Get categories by request: {}", search);
-        return categoryRepository.findAll(specification, pageable);
+        return categoryRepository.findAll(CategorySpecification.search(search), pageable);
     }
 
     @Override

@@ -75,7 +75,7 @@
                                 <div class="col mb-3">
                                     <label for="nameCategory" class="form-label">Название категории</label>
                                     <input type="text" id="nameCategory" class="form-control" placeholder="Введите название категории"/>
-                                    <div id="nameCategoryError" class="text-danger"></div>
+                                    <div id="nameError" class="text-danger"></div>
                                 </div>
                             </div>
 
@@ -305,15 +305,14 @@
                 });
             }
 
-            function validateEntitiesForm(err) {
-                clearEntitiesFormError();
-                if (err.responseJSON && err.responseJSON.errors) {
-                    const errors = err.responseJSON.errors;
-                    errors.forEach(error => {
-                        $(`#${error.field}Error`).text(error.defaultMessage);
-                    });
+            function validateEntitiesForm(error) {
+                const errorData = error.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}Error`).text(errorMessage);
                 }
             }
+
 
             function clearEntitiesFormError() {
                 $('#nameCategoryError').text('');
@@ -338,21 +337,18 @@
             function setupPagination(totalPages, currentPage) {
                 let paginationItems = '';
 
-                // First page button
                 if (currentPage > 0) {
                     paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                 } else {
                     paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
                 }
 
-                // Previous page button
                 if (currentPage > 0) {
                     paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
                 } else {
                     paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
                 }
 
-                // Pagination items
                 if (currentPage > 1) {
                     paginationItems += createPaginationItem(0, '1');
                     if (currentPage > 2) {
@@ -371,14 +367,12 @@
                     paginationItems += createPaginationItem(totalPages - 1, totalPages);
                 }
 
-                // Next page button
                 if (currentPage < totalPages - 1) {
                     paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
                 } else {
                     paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
                 }
 
-                // Last page button
                 if (currentPage < totalPages - 1) {
                     paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
                 } else {

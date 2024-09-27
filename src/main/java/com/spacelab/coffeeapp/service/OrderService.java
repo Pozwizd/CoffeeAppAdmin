@@ -1,6 +1,7 @@
 package com.spacelab.coffeeapp.service;
 
 import com.spacelab.coffeeapp.dto.OrdersDto;
+import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ public interface OrderService {
 
     public void updateOrder(Long id, Order order);
 
-    public void updateOrderFromDto(Long id, OrdersDto order);
 
     public void deleteOrder(Order order);
 
@@ -44,4 +44,6 @@ public interface OrderService {
     Order saveOrderFromDto(OrdersDto ordersDto);
 
     List<OrdersDto> getLastOrdersForStatistics();
+
+    List<Order> CancelAllOrdersByCustomer(Customer customer1);
 }

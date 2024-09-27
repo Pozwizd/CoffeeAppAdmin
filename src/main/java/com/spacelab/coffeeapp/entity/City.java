@@ -1,12 +1,8 @@
 package com.spacelab.coffeeapp.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 @Getter
@@ -24,9 +20,5 @@ public class City {
   private String postalCode;
 
   private String region;
-
-  @JsonIgnore
-  @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
-  private List<Location> locations = new ArrayList<>();
 
 }

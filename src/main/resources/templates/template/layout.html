@@ -111,6 +111,12 @@
                         <div>Заказы</div>
                     </a>
                 </li>
+                <li th:classappend="${pageActive == 'delivery' ? 'active' : ''}" class="menu-item">
+                    <a th:href="@{/delivery}" class="menu-link">
+                        <i class="menu-icon tf-icons ti ti-truck"></i>
+                        <div>Доставка</div>
+                    </a>
+                </li>
                 <li th:classappend="${pageActive == 'locations' ? 'active' : ''}" class="menu-item" >
                     <a th:href="@{/location}" class="menu-link">
                         <i class="menu-icon tf-icons ti ti-map-pin"></i>

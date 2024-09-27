@@ -12,46 +12,42 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <form id="attributeForm"
-                  method="post"
-                  enctype="multipart/form-data"
-                  th:object="${attributeProduct}"
-                  th:action="@{/attribute/{id}(id=${attributeProduct.id != null ? attributeProduct.id : 'create'})}">
+            <form id="attribute-form" >
                 <div class="row g-2">
-                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden">
                     <div class="col mb-0">
                         <label for="name" class="form-label">Имя</label>
-                        <input th:field="*{name}"
-                               type="text"
+                        <input type="text"
                                id="name"
                                name="name"
                                class="form-control"
-                               placeholder=""
-                               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                               placeholder=""/>
+                        <div id="nameError" class="text-danger"></div>
                     </div>
                     <div class="col mb-0">
                         <label for="type" class="form-label">Тип добавки</label>
-                        <select th:field="*{type}"
-                                id="type"
+                        <select id="type"
                                 class="form-select form-select"
                                 data-allow-clear="true"
                                 name="type">
                             <option th:each="type : ${typeAttribute}" th:value="${type}" th:text="${type}"></option>
                         </select>
+                        <div id="typeError" class="text-danger"></div>
                     </div>
                 </div>
                 <div class="row g-2">
                     <div class="col mb-0">
                         <label for="select2Primary" class="form-label">Продукты</label>
-                        <select id="select2Primary" class="select2 form-select" th:field="*{productId}" multiple>
-                            <option th:each="product : ${products}" th:value="${product.id}"
-                                    th:text="${product.name}"></option>
-                        </select></div>
-                    <div class="col-sm-6 p-4">
-                        <label class="switch switch-outline">
-                            <input type="checkbox" th:field="*{status}" class="switch-input" />
-                            <span class="switch-toggle-slider">
+                        <select id="select2Primary" class="select2 form-select" multiple required>
+                            <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name}"></option>
+                        </select>
+                        <div id="select2PrimaryFeedback" class="invalid-feedback">
+                            Пожалуйста, выберите хотя бы один элемент.
+                        </div>
+                        <div class="col-sm-6 p-4">
+                            <label class="switch switch-outline">
+                                <input type="checkbox" id="status" class="switch-input" />
+                                <span class="switch-toggle-slider">
                             <span class="switch-on">
                               <i class="ti ti-check"></i>
                             </span>
@@ -59,9 +55,11 @@
                               <i class="ti ti-x"></i>
                             </span>
                           </span>
-                            <span class="switch-label">Статус</span>
-                        </label>
+                                <span class="switch-label">Статус</span>
+                            </label>
+                        </div>
                     </div>
+
                 </div>
             </form>
         </div>
@@ -81,7 +79,6 @@
                         <thead>
                         <tr id="table-head">
                             <td class="text-center">Название</td>
-                            <td class="text-center">Описание</td>
                             <td class="text-center">Цена</td>
                             <td class="text-center">Цена со скидкой</td>
                             <td class="text-center"></td>
@@ -98,116 +95,106 @@
 
         <div class="card-footer d-flex justify-content-between">
             <button type="button" id="btn-back" class="btn btn-primary" onclick="window.history.back()">Назад</button>
-            <button type="submit" class="btn btn-success" id="btn-save">Сохранить</button>
+            <button type="button" class="btn btn-success" id="btn-save">Сохранить</button>
         </div>
 
-        <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="entity-modal-body">
-                        <form id="entity-form">
-                            <div class="row">
-                                <div class="col mb-3">
-                                    <label for="nameAttributeValue" class="form-label">Название</label>
-                                    <input
-                                            type="text"
-                                            id="nameAttributeValue"
-                                            class="form-control"
-                                            placeholder="Введите название добавки"
-                                    />
-                                    <div id="nameError" class="text-danger"></div>
-                                </div>
-                            </div>
-                            <div class="row g-2">
-                                <div class="col mb-0">
-                                    <label for="price" class="form-label">Цена</label>
-                                    <input
-                                            type="text"
-                                            id="price"
-                                            class="form-control"
-                                            placeholder="Введите цену"
-                                    />
-                                    <div id="priceError" class="text-danger"></div>
-                                </div>
-                                <div class="col mb-0">
-                                    <label for="priceWithDiscount" class="form-label">Цена со скидкой</label>
-                                    <input
-                                            type="text"
-                                            id="priceWithDiscount"
-                                            class="form-control"
-                                            placeholder="Введите цену со скидкой"
-                                    />
-                                    <div id="priceWithDiscountError" class="text-danger"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col mb-3">
-                                    <label for="description" class="form-label">Описание</label>
-                                    <textarea id="description"
-                                              class="form-control"
-                                              data-allow-clear="true"
-                                              name="role">
-                                    </textarea>
-                                    <div id="descriptionError" class="text-danger"></div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
 
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="save-entity-btn">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="deleteConfirmModalLabel">Подтвердите удаление</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Вы уверены, что хотите удалить этот элемент?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Удалить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
+    <script th:inline="javascript">
+        let attributeProduct = [[${attributeProduct}]];
+        console.log("Сущность аттрибута продукта:", attributeProduct);
+        populateFormById(attributeProduct)
+
+        function populateFormById(data) {
+            $('#name').val(data.name);
+            $('#type').val(data.type);
+            $('#status').prop('checked', data.status);
+            $('#select2Primary').val(data.productId).trigger('change');
+        }
+
+
+        $(document).ready(function() {
+
             initializeSelect2();
-            initializeTextareaAutosize();
-            initializeEventListeners();
 
-            loadEntities();
 
-            function initializeSelect2() {
-                let select2 = $('.select2');
 
-                if (select2.length) {
-                    select2.each(function () {
-                        let $this = $(this);
-                        $this.wrap('<div class="position-relative dark-style"></div>').select2({
-                            placeholder: 'Select value',
-                            dropdownParent: $this.parent()
-                        });
-                    });
+            $('#select2Primary').on('change', function () {
+                validateSelect2Primary();
+            });
+
+            $('#btn-save').on('click', function(e) {
+                e.preventDefault();
+                validateSelect2Primary();
+
+                let data = attributeProduct;
+                data.name = $('#name').val();
+                data.type = $('#type').val();
+                data.status = $('#status').is(':checked');
+                data.productId = $('#select2Primary').val();
+
+                let id = data.id === undefined || data.id === null || data.id === '' ? 'create' : data.id;
+                clearFormAttributeFormError();
+                $.ajax({
+                    url: '/attribute/' + id,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        console.log('Данные успешно отправлены:', response);
+                        window.history.back();
+                    },
+                    error: function(error) {
+                        validateEntitiesFormAttribute(error)
+                        console.error('Ошибка при отправке данных:', error);
+                    }
+                });
+            });
+
+            function validateEntitiesFormAttribute(error) {
+                const errorData = error.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}Error`).text(errorMessage);
                 }
             }
+
+            function clearFormAttributeFormError() {
+                $('#nameValueError').text('');
+                $('#priceValueError').text('');
+                $('#priceWithDiscountValueError').text('');
+                $('#descriptionValueError').text('');
+
+            }
+
+            function initializeSelect2() {
+                let $select2Primary = $('#select2Primary');
+
+                $select2Primary.wrap('<div class="position-relative dark-style"></div>').select2({
+                    placeholder: 'Выберите значение',
+                    dropdownParent: $select2Primary.parent()
+                });
+            }
+
+            function validateSelect2Primary() {
+                let $select2Primary = $('#select2Primary');
+                let selectedValues = $select2Primary.val();
+
+                if (!selectedValues || selectedValues.length === 0) {
+                    $select2Primary.addClass('is-invalid');
+                    $('#select2PrimaryFeedback').text('Пожалуйста, выберите хотя бы один элемент.').show();
+                } else {
+                    $select2Primary.removeClass('is-invalid').addClass('is-valid');
+                    $('#select2PrimaryFeedback').hide();
+                }
+            }
+        });
+
+        $(document).ready(function () {
+            initializeTextareaAutosize();
+            initializeEventListeners();
+            loadEntities();
 
             function initializeTextareaAutosize() {
                 const textarea = document.querySelector("#description");
@@ -215,34 +202,30 @@
             }
 
             function initializeEventListeners() {
-                document.getElementById("btn-save").addEventListener("click", function () {
-                    document.getElementById("attributeForm").submit();
-                });
 
                 $(document).on('click', '.edit-entity-btn', handleEditEntity);
                 $(document).on('click', '#createEntity', handleCreateEntity);
                 $(document).on('click', '#save-entity-btn', handleSaveEntity);
                 $(document).on('click', '.delete-entity-btn', handleDeleteEntity);
                 $(document).on('click', '#confirm-delete-btn', confirmDeleteEntity);
+
             }
 
             function handleEditEntity() {
                 const id = $(this).data('id');
-                fetchEntityDetails(id);
+                getAttributeValueById(id);
             }
 
-            function fetchEntityDetails(id) {
-                $.ajax({
-                    url: `/attributeValue/${id}`,
-                    method: 'GET',
-                    success: function (entity) {
-                        populateEntityForm(entity);
-                        clearEntitiesFormError();
-                    },
-                    error: function (err) {
-                        console.error('Error fetching entity:', err);
+            function getAttributeValueById(id) {
+                let attributeValueById
+                for (let i = 0; i < attributeProduct.attributeValues.length; i++) {
+                    if (attributeProduct.attributeValues[i].name === id) {
+                        attributeValueById = attributeProduct.attributeValues[i];
+                        break;
                     }
-                });
+                }
+                populateEntityForm(attributeValueById);
+                clearEntitiesFormError();
             }
 
             function handleCreateEntity() {
@@ -257,55 +240,85 @@
                 const attributeValueDto = {
                     id: id,
                     name: $('#nameAttributeValue').val(),
+                    description: $('#description').val(),
                     price: $('#price').val(),
-                    priceWithDiscount: $('#priceWithDiscount').val(),
-                    description: $('#description').val()
+                    priceWithDiscount: $('#priceWithDiscount').val()
+
                 };
 
-                if (name) {
-                    updateEntity(attributeValueDto, name);
-                } else {
-                    createNewEntity(attributeValueDto);
+                clearFormAttributeValueFormError()
+                $.ajax({
+                    url: '/attribute/attributeValue/validate', // URL куда будет отправлен запрос
+                    type: 'POST', // Тип запроса POST
+                    contentType: 'application/json', // Тип данных, которые отправляем
+                    data: JSON.stringify(attributeValueDto),
+                    success: function(response) {
+                        console.log('Успешный ответ:', response); // Обработка успешного ответа
+                        if (name) {
+                            updateEntity(attributeValueDto, name);
+                        } else {
+                            createNewEntity(attributeValueDto);
+                        }
+                    },
+                    error: function(error) {
+                        validateEntitiesFormAttributeValue(error);
+                        console.log('Ошибка:', error);
+                        console.error('Произошла ошибка:', error); // Обработка ошибки
+                    }
+                });
+            }
+
+
+
+
+            function validateEntitiesFormAttributeValue(error) {
+                const errorData = error.responseJSON;
+                for (const field in errorData) {
+                    const errorMessage = errorData[field];
+                    $(`#${field}ValueError`).text(errorMessage);
                 }
             }
 
-            function updateEntity(attributeValueDto, name) {
-                $.ajax({
-                    url: `/attributeValue/${name}`,
-                    method: 'PUT',
-                    contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify(attributeValueDto),
-                    success: function () {
-                        handleEntitySaveSuccess();
-                    },
-                    error: function (err) {
-                        console.error('Error updating entity:', err);
-                        validateEntitiesForm(err);
-                    }
-                });
+            function clearFormAttributeValueFormError() {
+                $('#nameValueError').text('');
+                $('#priceValueError').text('');
+                $('#priceWithDiscountValueError').text('');
+                $('#descriptionValueError').text('');
+
             }
+
+            function populateEntityForm(entity) {
+                $('#nameAttributeValue').val(entity.name);
+                $('#price').val(entity.price);
+                $('#priceWithDiscount').val(entity.priceWithDiscount);
+                $('#description').val(entity.description);
+                $('#save-entity-btn').data('id', entity.name).attr('data-id', entity.id);
+            }
+
+            function updateEntity(attributeValueDto, name) {
+                for (let i = 0; i < attributeProduct.attributeValues.length; i++) {
+                    if (attributeProduct.attributeValues[i].name === name) {
+                        attributeProduct.attributeValues[i] = attributeValueDto;
+                        handleEntitySaveSuccess();
+                        break;
+                    }
+                }
+            }
+
+
 
             function createNewEntity(attributeValueDto) {
                 attributeValueDto.id = null;
-                $.ajax({
-                    url: `/attributeValue/create`,
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(attributeValueDto),
-                    success: function () {
-                        handleEntitySaveSuccess();
-                    },
-                    error: function (err) {
-                        validateEntitiesForm(err);
-                        console.error('Error creating entity:', err);
-                    }
-                });
+                attributeProduct.attributeValues.push(attributeValueDto);
+                console.log("Сущность аттрибута продукта:", attributeProduct);
+                handleEntitySaveSuccess();
             }
 
+
             function handleEntitySaveSuccess() {
-                loadEntities();
                 $('#entityModal').removeClass('show');
                 $('.modal-backdrop').remove();
+                loadEntities();
                 resetForm();
             }
 
@@ -317,16 +330,14 @@
             function confirmDeleteEntity() {
                 const id = $(this).data('id');
 
-                $.ajax({
-                    url: `/attributeValue/${id}`,
-                    method: 'DELETE',
-                    success: function () {
+
+                for (let i = 0; i < attributeProduct.attributeValues.length; i++) {
+                    if (attributeProduct.attributeValues[i].name === id) {
+                        attributeProduct.attributeValues.splice(i, 1);
                         handleEntityDeleteSuccess();
-                    },
-                    error: function (err) {
-                        console.error('Error deleting entity:', err);
+                        break;
                     }
-                });
+                }
             }
 
             function handleEntityDeleteSuccess() {
@@ -358,23 +369,14 @@
             }
 
             function loadEntities() {
-                $.ajax({
-                    url: `/attributeValue/getAll`,
-                    method: 'GET',
-                    success: function (data) {
-                        populateEntitiesTable(data);
-                    },
-                    error: function (err) {
-                        console.error('Error loading entities:', err);
-                    }
-                });
+                let allEntities = attributeProduct.attributeValues;
+                populateEntitiesTable(allEntities);
             }
 
             function populateEntitiesTable(data) {
                 const rows = data.map(entity => `
                 <tr>
                     <td class="text-center">${entity.name}</td>
-                    <td class="text-center">${entity.description}</td>
                     <td class="text-center">${entity.price}</td>
                     <td class="text-center">${entity.priceWithDiscount}</td>
                     <td class="d-flex justify-content-center">
@@ -387,19 +389,97 @@
                 $('#table-body').html(rows);
             }
 
-            function populateEntityForm(entity) {
-                $('#nameAttributeValue').val(entity.name);
-                $('#price').val(entity.price);
-                $('#priceWithDiscount').val(entity.priceWithDiscount);
-                $('#description').val(entity.description);
-                $('#save-entity-btn').data('id', entity.name).attr('data-id', entity.id);
-            }
+
         });
     </script>
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 
 
+    <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="entity-modal-body">
+                    <form id="entity-form">
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="nameAttributeValue" class="form-label">Название</label>
+                                <input
+                                        type="text"
+                                        id="nameAttributeValue"
+                                        class="form-control"
+                                        placeholder="Введите название добавки"
+                                />
+                                <div id="nameValueError" class="text-danger"></div>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="price" class="form-label">Цена</label>
+                                <input
+                                        type="text"
+                                        id="price"
+                                        class="form-control"
+                                        placeholder="Введите цену"
+                                />
+                                <div id="priceValueError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="priceWithDiscount" class="form-label">Цена со скидкой</label>
+                                <input
+                                        type="text"
+                                        id="priceWithDiscount"
+                                        class="form-control"
+                                        placeholder="Введите цену со скидкой"
+                                />
+                                <div id="priceWithDiscountValueError" class="text-danger"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="description" class="form-label">Описание</label>
+                                <textarea id="description"
+                                          class="form-control"
+                                          data-allow-clear="true"
+                                          name="role">
+                                    </textarea>
+                                <div id="descriptionValueError" class="text-danger"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="save-entity-btn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Подтвердите удаление</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить этот элемент?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 

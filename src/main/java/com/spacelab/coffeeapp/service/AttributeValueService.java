@@ -10,7 +10,7 @@ import java.util.Optional;
 @Service
 public interface AttributeValueService {
 
-    void saveAttributeValue(AttributeValue attributeValue);
+    AttributeValue saveAttributeValue(AttributeValue attributeValue);
 
     void saveAttributeValueFromDto(AttributeValueDto attributeValueDto);
 

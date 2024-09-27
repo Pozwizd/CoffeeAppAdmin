@@ -18,13 +18,12 @@ public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, Us
 
     @Override
     public void initialize(UniqueEmail constraintAnnotation) {
-        // Инициализация, если необходима
     }
 
     @Override
     public boolean isValid(UserDto userDto, ConstraintValidatorContext context) {
         if (userDto == null || userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
-            return true; // Пропускаем проверку, если email пустой, так как это проверяется другой аннотацией
+            return true;
         }
 
         Optional<User> existingUser = userRepository.findByEmail(userDto.getEmail());

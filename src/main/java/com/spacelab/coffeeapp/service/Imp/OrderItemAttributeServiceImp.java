@@ -80,7 +80,6 @@ public class OrderItemAttributeServiceImp implements OrderItemAttributeService {
         orderItemAttribute.setAttributeProduct(attributeProductService.getAttributeProduct(orderItemAttributeDto.getProductAttributeId()).get());
         orderItemAttribute.setAttributeValue(attributeValueService.getAttributeValue(orderItemAttributeDto.getAttributeValueId()).get());
         orderItemAttribute.setOrderItem(orderItem);
-        // Учитываем скидку если она существует
         orderItemAttribute.setPrice(
                 orderItemAttribute
                         .getAttributeValue()

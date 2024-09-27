@@ -64,7 +64,6 @@ public class ProductController {
 
 
     @GetMapping("/{id}")
-    @ResponseBody
     public ModelAndView getEditProductPage(@PathVariable Long id, Model model) {
         model.addAttribute("product", productService.getProductDto(id));
         List<Product.Status> status = List.of(Product.Status.values());
@@ -83,8 +82,15 @@ public class ProductController {
     }
 
     @PostMapping("/{id}")
-    public ModelAndView updateProduct(@PathVariable Long id, @Valid @ModelAttribute("product") ProductDto productDto, BindingResult bindingResult) {
+    public ModelAndView updateProduct(@PathVariable Long id,
+                                      @Valid @ModelAttribute("product") ProductDto productDto,
+                                      BindingResult bindingResult,
+                                      Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("product", productDto);
+            List<Product.Status> status = List.of(Product.Status.values());
+            model.addAttribute("statusList", status);
+            model.addAttribute("listCategories", categoryService.getAllCategoryDto());
             bindingResult.getAllErrors().forEach(error -> System.out.println(error.toString()));
             return new ModelAndView("products/productItem");
         }

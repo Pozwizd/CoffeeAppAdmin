@@ -65,7 +65,7 @@ public class UserController {
 
     @PostMapping({"/create"})
     @ResponseBody
-    public ResponseEntity<?> createEntity(@RequestBody UserDto user) {
+    public ResponseEntity<?> createEntity(@Valid @RequestBody UserDto user) {
          userService.saveUser(user);
         return ResponseEntity.ok().build();
     }

@@ -8,7 +8,6 @@ import com.spacelab.coffeeapp.entity.OrderItemAttribute;
 import com.spacelab.coffeeapp.repository.OrderItemRepository;
 import com.spacelab.coffeeapp.service.OrderItemAttributeService;
 import com.spacelab.coffeeapp.service.OrderItemService;
-import com.spacelab.coffeeapp.service.OrderService;
 import com.spacelab.coffeeapp.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,11 +81,9 @@ public class OrderItemServiceImp implements OrderItemService {
     @Override
     public OrderItem saveOrderItem(OrderItemDto orderItemDto, Order savedOrder) {
         if (orderItemDto.getId() == null) {
-            // Создание нового OrderItem
             OrderItem orderItem = createNewOrderItem(orderItemDto, savedOrder);
             return saveOrderItem(orderItem);
         } else {
-            // Обновление существующего OrderItem
             return orderItemRepository.findById(orderItemDto.getId())
                     .map(existingOrderItem -> updateExistingOrderItem(existingOrderItem, orderItemDto, savedOrder))
                     .orElseThrow(() -> new RuntimeException("OrderItem not found with id: " + orderItemDto.getId()));
@@ -101,7 +98,6 @@ public class OrderItemServiceImp implements OrderItemService {
             }
             return true;
         } catch (Exception e) {
-            // Логируем исключение, если это необходимо
             e.printStackTrace();
             return false;
         }
@@ -127,8 +123,6 @@ public class OrderItemServiceImp implements OrderItemService {
         existingOrderItem.setProduct(productService.getProduct(orderItemDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found")));
         existingOrderItem.setOrder(savedOrder);
         existingOrderItem.setQuantity(orderItemDto.getQuantity());
-
-        // Обновляем атрибуты
         existingOrderItem.setOrderItemAttributes(new ArrayList<>());
         List<OrderItemAttribute> updatedAttributes = orderItemDto.getAttributes().stream()
                 .map(orderItemAttributeDto -> orderItemAttributeService.saveOrderItemAttribute(orderItemAttributeDto, existingOrderItem))
@@ -145,6 +139,4 @@ public class OrderItemServiceImp implements OrderItemService {
                 .reduce(0.0, Double::sum);
         return totalAmount * quantity;
     }
-
-
 }

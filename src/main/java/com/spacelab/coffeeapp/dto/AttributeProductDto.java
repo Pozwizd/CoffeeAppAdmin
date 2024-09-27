@@ -1,6 +1,7 @@
 package com.spacelab.coffeeapp.dto;
 
 import com.spacelab.coffeeapp.entity.AttributeProduct;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * DTO for {@link AttributeProduct}
  */
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,5 +34,6 @@ public class AttributeProductDto implements Serializable {
 
     Boolean status;
 
+    @Valid
     List<AttributeValueDto> attributeValues;
 }

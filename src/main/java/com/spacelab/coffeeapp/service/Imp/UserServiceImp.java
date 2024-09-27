@@ -59,7 +59,9 @@ public class UserServiceImp implements UserService, UserDetailsService {
         userRepository.findById(id).map(user1 -> {
             user1.setName(user.getName());
             user1.setEmail(user.getEmail());
-            user1.setRole(User.Role.valueOf(user.getRole()));
+            if (user.getRole() != null){
+                user1.setRole(User.Role.valueOf(user.getRole()));
+            }
             user1.setPassword(user.getPassword());
             userRepository.save(user1);
             return user1;
@@ -100,9 +102,8 @@ public class UserServiceImp implements UserService, UserDetailsService {
     @Override
     public Page<User> findUsersByRequest(int page, int pageSize, String search) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Specification<User> specification = new UserSpecification(search);
         log.info("Get all users by request: {}", search);
-        return userRepository.findAll(specification, pageable);
+        return userRepository.findAll(UserSpecification.search(search), pageable);
     }
 
     @Override

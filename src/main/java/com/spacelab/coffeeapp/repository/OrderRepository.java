@@ -1,6 +1,6 @@
 package com.spacelab.coffeeapp.repository;
 
-import com.spacelab.coffeeapp.dto.OrdersDto;
+import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +29,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o ORDER BY o.dateTimeOfCreate DESC LIMIT 5")
     List<Order> getLastOrdersForStatistics();
+
+    List<Order> findByCustomer(Customer customer);
+
+
+    List<Order> findByCustomerAndStatus(Customer customer, Order.OrderStatus status);
+
+
+    List<Order> findByCustomerAndStatusNot(Customer customer, Order.OrderStatus status);
 }

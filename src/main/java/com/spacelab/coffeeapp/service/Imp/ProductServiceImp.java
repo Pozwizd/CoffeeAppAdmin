@@ -4,7 +4,6 @@ import com.spacelab.coffeeapp.dto.ProductDto;
 import com.spacelab.coffeeapp.dto.TopProduct;
 import com.spacelab.coffeeapp.entity.Product;
 import com.spacelab.coffeeapp.mapper.ProductMapper;
-import com.spacelab.coffeeapp.repository.OrderItemRepository;
 import com.spacelab.coffeeapp.repository.ProductRepository;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
@@ -31,8 +30,6 @@ public class ProductServiceImp implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryService categoryService;
-
-
 
     @Override
     public void saveProduct(Product product) {
@@ -87,9 +84,6 @@ public class ProductServiceImp implements ProductService {
         return product;
     }
 
-
-
-
     @Override
     public void updateProductFromDto(Long id, ProductDto productDto) {
         log.info("Updating product from dto with id: {}", id);
@@ -105,7 +99,6 @@ public class ProductServiceImp implements ProductService {
             return new RuntimeException("Product not found");
         });
     }
-
 
     @Override
     public void deleteProduct(Product product) {
@@ -222,12 +215,6 @@ public class ProductServiceImp implements ProductService {
                 productSalesByMonth.get(productName).set(index, purchaseCount);
             }
         }
-
         return productSalesByMonth;
     }
-
-
-
-
-
 }

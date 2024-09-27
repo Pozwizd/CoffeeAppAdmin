@@ -1,30 +1,22 @@
 package com.spacelab.coffeeapp.specification;
 
 import com.spacelab.coffeeapp.entity.User;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
+public interface UserSpecification {
 
-public class UserSpecification implements Specification<User> {
-    private final String searchValue;
+    static Specification<User> search(String searchValue) {
 
-    public UserSpecification(String searchValue) {
-        this.searchValue = searchValue;
-    }
+        return (root, query, criteriaBuilder) -> {
+            if (searchValue == null || searchValue.isEmpty()) {
+                return null;
+            }
 
-    @Override
-    public Predicate toPredicate(Root<User> root,CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-        if (searchValue == null || searchValue.isEmpty()) {
-            return null;
-        }
-
-        String lowerSearchValue = "%" + searchValue.toLowerCase() + "%";
-        return criteriaBuilder.or(
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), lowerSearchValue),
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), lowerSearchValue)
-        );
+            String lowerSearchValue = "%" + searchValue.toLowerCase() + "%";
+            return criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), lowerSearchValue),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), lowerSearchValue)
+            );
+        };
     }
 }

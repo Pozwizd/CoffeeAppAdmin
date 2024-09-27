@@ -28,9 +28,6 @@ public class LoginController {
     @GetMapping("/login")
     public ModelAndView login(Model model){
         model.addAttribute("title", "Вход в систему");
-//        if(adminService.getAdminsCount().equals(0L)){
-//            adminService.createFirstAdmin();
-//        }
         return new ModelAndView("login/login");
     }
 

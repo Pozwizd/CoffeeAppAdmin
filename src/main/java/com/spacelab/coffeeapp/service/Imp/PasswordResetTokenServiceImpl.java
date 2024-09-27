@@ -6,8 +6,7 @@ import com.spacelab.coffeeapp.repository.PasswordResetTokenRepository;
 import com.spacelab.coffeeapp.repository.UserRepository;
 import com.spacelab.coffeeapp.service.PasswordResetTokenService;
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +15,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class PasswordResetTokenServiceImpl implements PasswordResetTokenService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final UserRepository adminRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public PasswordResetTokenServiceImpl(PasswordResetTokenRepository passwordResetTokenRepository, UserRepository adminRepository, PasswordEncoder passwordEncoder) {
-        this.passwordResetTokenRepository = passwordResetTokenRepository;
-        this.adminRepository = adminRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public void updatePassword(String token, String password) {
@@ -48,7 +42,7 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
         if(admin.getPasswordResetToken() != null){
             admin.getPasswordResetToken().setToken(token);
             admin.getPasswordResetToken().setExpirationDate();
-            adminRepository.save(admin);
+            userRepository.save(admin);
         } else {
             PasswordResetToken passwordResetToken = new PasswordResetToken(token, admin);
             passwordResetTokenRepository.save(passwordResetToken);

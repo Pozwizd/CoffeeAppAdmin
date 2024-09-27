@@ -61,8 +61,6 @@ public class UploadFile {
         }
     }
 
-    // Метод для проверки тип файла на изображение
-
     public boolean isAllowedImageTypeAndSize(MultipartFile file) {
         if (file.getContentType() == null) {
             return true;

@@ -21,9 +21,10 @@ public class AttributeValueServiceImp implements AttributeValueService {
     private final AttributeValueMapper attributeValueMapper;
 
     @Override
-    public void saveAttributeValue(AttributeValue attributeValue) {
-        attributeValueRepository.save(attributeValue);
+    public AttributeValue saveAttributeValue(AttributeValue attributeValue) {
+        AttributeValue savedAttributeValue = attributeValueRepository.save(attributeValue);
         log.info("AttributeValue saved successfully");
+        return savedAttributeValue;
     }
 
     @Override

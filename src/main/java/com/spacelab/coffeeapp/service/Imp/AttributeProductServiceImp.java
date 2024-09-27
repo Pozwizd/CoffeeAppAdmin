@@ -11,6 +11,7 @@ import com.spacelab.coffeeapp.service.AttributeProductService;
 import com.spacelab.coffeeapp.service.AttributeValueService;
 import com.spacelab.coffeeapp.service.ProductService;
 import com.spacelab.coffeeapp.specification.AttributeProductSpecification;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,9 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +32,88 @@ public class AttributeProductServiceImp implements AttributeProductService {
     private final ProductService productService;
     private final AttributeProductMapper attributeProductMapper;
 
+    @Override
+    @Transactional
+    public Boolean saveAttributeProductFromDto(AttributeProductDto attributeProductDto) {
+
+        AttributeProduct attributeProduct;
+        if (attributeProductDto.getId() != null) {
+            attributeProduct = attributeProductRepository
+                    .findById(attributeProductDto.getId())
+                    .orElseGet(AttributeProduct::new);
+        } else {
+            attributeProduct = new AttributeProduct();
+        }
+
+        attributeProduct.setName(attributeProductDto.getName());
+        attributeProduct.setType(AttributeProduct.TypeAttribute.valueOf(attributeProductDto.getType()));
+        attributeProduct.setStatus(attributeProductDto.getStatus());
+
+        List<Long> newProductIds = attributeProductDto.getProductId();
+        List<Product> currentProducts = attributeProduct.getProducts();
+
+        List<Product> productsToRemove = currentProducts.stream()
+                .filter(product -> !newProductIds.contains(product.getId()))
+                .toList();
+        for (Product product : productsToRemove) {
+            product.getAttributeProducts().remove(attributeProduct); // удаляем связь
+        }
+
+        List<Product> productsToAdd = newProductIds.stream()
+                .map(productId -> productService.getProduct(productId)
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId)))
+                .collect(Collectors.toList());
+
+        for (Product product : productsToAdd) {
+            if (!attributeProduct.getProducts().contains(product)) {
+                product.getAttributeProducts().add(attributeProduct);
+                productService.saveProduct(product);
+            }
+        }
+        attributeProduct.setProducts(productsToAdd);
+
+        attributeProduct = attributeProductRepository.save(attributeProduct);
+
+        List<Long> newAttributeValueIds = attributeProductDto.getAttributeValues() != null && !attributeProductDto.getAttributeValues().isEmpty()
+                ? attributeProductDto.getAttributeValues().stream()
+                .map(AttributeValueDto::getId)
+                .filter(Objects::nonNull)
+                .toList()
+                : Collections.emptyList();
+
+        List<AttributeValue> existingAttributeValues = attributeProduct.getAttributeValues();
+
+        existingAttributeValues.stream()
+                .filter(attributeValue -> !newAttributeValueIds.contains(attributeValue.getId()))
+                .forEach(attributeValue -> attributeValueService.deleteAttributeValueById(attributeValue.getId()));
+
+        List<AttributeValue> mutableAttributeValues = new ArrayList<>(attributeProduct.getAttributeValues());
+        mutableAttributeValues.clear();
+        attributeProduct.setAttributeValues(mutableAttributeValues);
+
+        if (attributeProductDto.getAttributeValues() != null && !attributeProductDto.getAttributeValues().isEmpty()) {
+            for (AttributeValueDto attributeValueDto : attributeProductDto.getAttributeValues()) {
+                AttributeValue attributeValue = attributeValueDto.getId() != null
+                        ? attributeValueService.getAttributeValue(attributeValueDto.getId())
+                        .orElseGet(AttributeValue::new)
+                        : new AttributeValue();
+
+                attributeValue.setName(attributeValueDto.getName());
+                attributeValue.setDescription(attributeValueDto.getDescription());
+                attributeValue.setPrice(attributeValueDto.getPrice());
+                attributeValue.setPriceWithDiscount(attributeValueDto.getPriceWithDiscount());
+                attributeValue.setAttributeProduct(attributeProduct);
+
+                attributeValueService.saveAttributeValue(attributeValue);
+                mutableAttributeValues.add(attributeValue);
+            }
+        }
+
+        attributeProductRepository.save(attributeProduct);
+
+
+        return true;
+    }
 
     @Override
     public void saveAttributeProduct(AttributeProduct attributeProduct) {
@@ -74,13 +156,11 @@ public class AttributeProductServiceImp implements AttributeProductService {
         attributeProductRepository.findById(id).map(attributeProduct1 -> {
             attributeProduct1.setName(attributeProduct.getName());
             attributeProduct1.setType(attributeProduct.getType());
-//            attributeProduct1.setProduct(attributeProduct.getProduct());
+            attributeProduct1.setProducts(attributeProduct.getProducts());
             attributeProduct1.setAttributeValues(attributeProduct.getAttributeValues());
             attributeProductRepository.save(attributeProduct1);
             return attributeProduct1;
-        }).orElseThrow(() -> {
-            throw new RuntimeException("AttributeProduct not found");
-        });
+        }).orElseThrow(() -> new RuntimeException("AttributeProduct not found"));
         log.info("Update attributeProduct: {}", attributeProduct);
     }
 
@@ -137,61 +217,6 @@ public class AttributeProductServiceImp implements AttributeProductService {
         } else {
             return attributeProductMapper.toDtoListPage(findAllAttributeProductsPageByRequest(page, size, search));
         }
-    }
-
-    @Override
-    public Boolean saveAttributeProductFromDto(AttributeProductDto attributeProductDto) {
-        Optional<AttributeProduct> existingAttributeProductOptional = attributeProductRepository.findById(attributeProductDto.getId());
-
-        AttributeProduct attributeProduct = existingAttributeProductOptional.orElseGet(AttributeProduct::new);
-
-        attributeProduct.setName(attributeProductDto.getName());
-        attributeProduct.setType(AttributeProduct.TypeAttribute.valueOf(attributeProductDto.getType()));
-        attributeProduct.setStatus(attributeProductDto.getStatus());
-
-        List<Product> products = new ArrayList<>();
-        AttributeProduct finalAttributeProduct = attributeProduct;
-        attributeProductDto.getProductId().forEach(productId -> {
-            Product product = productService.getProduct(productId).orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
-            products.add(product);
-            product.getAttributeProducts().add(finalAttributeProduct); // Добавляем атрибут текущему продукту
-        });
-
-        attributeProduct.setProducts(products);
-
-        attributeProductRepository.save(attributeProduct);
-
-        if (attributeProductDto.getId() == null) {
-            attributeProduct = attributeProductRepository.findLastAttributeProduct();
-        }
-
-        if (existingAttributeProductOptional.isPresent()) {
-            attributeProduct.getAttributeValues().clear();
-        }
-
-        if (attributeProductDto.getAttributeValues() != null && !attributeProductDto.getAttributeValues().isEmpty()) {
-            for (AttributeValueDto attributeValueDto : attributeProductDto.getAttributeValues()) {
-                AttributeValue attributeValue;
-                if (attributeValueDto.getId() != null) {
-                    attributeValue = attributeValueService.getAttributeValue(attributeValueDto.getId())
-                            .orElseGet(AttributeValue::new);
-                } else {
-                    attributeValue = new AttributeValue();
-                }
-
-                attributeValue.setName(attributeValueDto.getName());
-                attributeValue.setDescription(attributeValueDto.getDescription());
-                attributeValue.setPrice(attributeValueDto.getPrice());
-                attributeValue.setPriceWithDiscount(attributeValueDto.getPriceWithDiscount());
-                attributeValue.setAttributeProduct(attributeProduct);
-                attributeValueService.saveAttributeValue(attributeValue);
-                attributeProduct.getAttributeValues().add(attributeValue);
-            }
-        }
-
-        attributeProductRepository.save(attributeProduct);
-
-        return true;
     }
 
     @Override

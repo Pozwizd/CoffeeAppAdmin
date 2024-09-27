@@ -1,7 +1,9 @@
 package com.spacelab.coffeeapp.service.Imp;
 
 import com.spacelab.coffeeapp.dto.DeliveryDto;
+import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.Delivery;
+import com.spacelab.coffeeapp.mapper.DeliveryMapper;
 import com.spacelab.coffeeapp.repository.DeliveryRepository;
 import com.spacelab.coffeeapp.service.CityService;
 import com.spacelab.coffeeapp.service.DeliveryService;
@@ -20,6 +22,7 @@ import java.util.List;
 public class DeliveryServiceImp implements DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
+    private final DeliveryMapper deliveryMapper;
     private final CityService cityService;
 
 
@@ -27,12 +30,10 @@ public class DeliveryServiceImp implements DeliveryService {
     @Override
     public Delivery saveDelivery(DeliveryDto deliveryDto) {
         if (deliveryDto.getId() != null) {
-            // Обновление существующей доставки
             return deliveryRepository.findById(deliveryDto.getId())
                     .map(existingDelivery -> updateDelivery(existingDelivery, deliveryDto))
                     .orElseThrow(() -> new RuntimeException("Delivery not found with id: " + deliveryDto.getId()));
         } else {
-            // Создание новой доставки
             Delivery newDelivery = createDelivery(deliveryDto);
             return saveDelivery(newDelivery);
         }
@@ -77,6 +78,11 @@ public class DeliveryServiceImp implements DeliveryService {
     }
 
     @Override
+    public DeliveryDto getDeliveryDto(Long id) {
+        return deliveryMapper.toDeliveryDto(getDelivery(id));
+    }
+
+    @Override
     public List<Delivery> getAllDeliveries() {
         return deliveryRepository.findAll();
     }
@@ -94,17 +100,18 @@ public class DeliveryServiceImp implements DeliveryService {
     }
 
     @Override
-    public Page findAllDeliveries(int page, int pageSize) {
+    public Page<Delivery> findAllDeliveries(int page, int pageSize) {
         return deliveryRepository.findAll(PageRequest.of(page, pageSize));
     }
 
     @Override
-    public Page findDeliveriesByRequest(int page, int pageSize, String search) {
-        return null;
+    public Page<DeliveryDto> findAllDeliveryDtos(int page, int pageSize) {
+        return deliveryMapper.toDeliveryDtoPage(findAllDeliveries(page, pageSize));
     }
 
     @Override
     public long countDeliveries() {
         return deliveryRepository.count();
     }
+
 }

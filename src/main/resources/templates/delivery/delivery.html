@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template/layout.html">
+<body>
+<div layout:fragment="content">
+    <div class="d-flex flex-row justify-content-center align-items-center">
+        <h4 class="fw-bold pt-3" th:text="${title}"></h4>
+    </div>
+    <div class="card">
+        <div class="card-header py-2 d-flex align-items-center">
+            <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
+                <div class="search-input-wrapper col-md-4">
+<!--                    <label class="d-flex align-items-center gap-2 w-100">-->
+<!--                        Поиск:-->
+<!--                        <input type="text" id="search" class="form-control" placeholder="Поиск...">-->
+<!--                    </label>-->
+                </div>
+            </div>
+            <div class="d-flex ms-auto">
+                <button class="btn btn-primary" data-bs-toggle="modal" id="createEntity" data-bs-target="#entityModal">
+                    <i class="ti ti-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr id="table-head">
+                            <td class="text-center">ID</td>
+                            <td class="text-center">Имя</td>
+                            <td class="text-center">Телефон</td>
+                            <td class="text-center">Статус</td>
+                            <td class="text-center">Действия</td>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between align-items-center pb-0">
+            <label class="d-flex align-items-center gap-1" style="transform: translateY(-8px);">
+                Показать:
+                <select id="pageSize" class="form-control">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
+            </nav>
+        </div>
+
+
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmModalLabel">Подтвердите удаление</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить этот элемент?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-danger" id="confirm-delete-btn">Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Modal -->
+    <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deliveryModalLabel">Редактирование доставки</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="nameDelivery" class="form-label">Имя клиента</label>
+                                <input
+                                        type="text"
+                                        id="nameDelivery"
+                                        class="form-control"
+                                        name="nameDelivery">
+                                <div id="nameDeliveryError" class="text-danger"></div>
+
+                            </div>
+                            <div class="col mb-0">
+                                <label for="phoneNumberDelivery" class="form-label">Номер телефона</label>
+                                <input
+                                        type="text"
+                                        id="phoneNumberDelivery"
+                                        class="form-control"
+                                        name="phoneNumberDelivery">
+                                <div id="phoneNumberDeliveryError" class="text-danger"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="cityDelivery" class="form-label">Город</label>
+                                <select
+                                        type="text"
+                                        id="cityDelivery"
+                                        class="form-control"
+                                        name="cityDelivery">
+                                </select>
+                                <div id="cityDeliveryError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="streetDelivery" class="form-label">Улица</label>
+                                <input
+                                        type="text"
+                                        id="streetDelivery"
+                                        class="form-control"
+                                        name="streetDelivery">
+                                <div id="streetDeliveryError" class="text-danger"></div>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="buildingDelivery" class="form-label">Дом</label>
+                                <input
+                                        type="text"
+                                        id="buildingDelivery"
+                                        class="form-control"
+                                        name="buildingDelivery">
+                                <div id="buildingDeliveryError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="subDoorDelivery" class="form-label">Подьезд</label>
+                                <input
+                                        type="text"
+                                        id="subDoorDelivery"
+                                        class="form-control"
+                                        name="subDoorDelivery">
+                                <div id="subDoorDeliveryError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="apartmentDelivery" class="form-label">Квартира</label>
+                                <input
+                                        type="text"
+                                        id="apartmentDelivery"
+                                        class="form-control"
+                                        name="apartmentDelivery">
+                                <div id="apartmentDeliveryError" class="text-danger"></div>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="dataDelivery" class="form-label">Дата доставки</label>
+                                <input
+                                        type="date"
+                                        id="dataDelivery"
+                                        class="form-control"
+                                        name="buildingDelivery">
+                                <div id="dataDeliveryError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="timeDelivery" class="form-label">Время доставки</label>
+                                <input
+                                        type="time"
+                                        id="timeDelivery"
+                                        class="form-control"
+                                        name="subDoorDelivery">
+                                <div id="timeDeliveryError" class="text-danger"></div>
+                            </div>
+
+                        </div>
+                        <div class="row g-2">
+                            <div class="col mb-0">
+                                <label for="changeAmount" class="form-label">Сумма сдачи</label>
+                                <input
+                                        type="number"
+                                        id="changeAmount"
+                                        class="form-control"
+                                        name="buildingDelivery">
+                                <div id="changeAmountError" class="text-danger"></div>
+                            </div>
+                            <div class="col mb-0">
+                                <label for="statusDelivery" class="form-label">Статус доставки</label>
+                                <select
+                                        id="statusDelivery"
+                                        class="form-control"
+                                        name="subDoorDelivery">
+                                </select>
+                                <div id="statusDeliveryError" class="text-danger"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-delivery-btn">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let pageSize = parseInt($('#pageSize').val());
+            let currentPage = 0;
+            loadEntities(currentPage, pageSize);
+            initializeEventHandlers();
+            loadCitiesForDelivery()
+            loadStatusDelivery()
+
+            function loadStatusDelivery() {
+                $.ajax({
+                    url: '/order/getStatusDelivery',
+                    method: 'GET',
+                    success: function (response) {
+                        response.forEach(status => {
+                            $('#statusDelivery').append(`<option value="${status}">${status}</option>`)
+                        })
+                    },
+                    error: function (err) {
+                        console.log('Error loading order:', err);
+                    }
+                });
+            }
+
+            function loadCitiesForDelivery() {
+                $.ajax({
+                    url: '/order/getCities',
+                    method: 'GET',
+                    success: function (response) {
+                        response.forEach(city => {
+                            $('#cityDelivery').append(`<option value="${city.id}">${city.name}</option>`)
+                        })
+                    },
+                    error: function (err) {
+                        console.log('Error loading order:', err);
+                    }
+                });
+            }
+
+            function initializeEventHandlers() {
+
+                $('#pageSize').on('change', function () {
+                    pageSize = parseInt($(this).val());
+                    loadEntities(0, pageSize);
+                });
+
+                $(document).on('click', '.page-link', handlePageLinkClick);
+                $(document).on('click', '.edit-entity-btn', handleEditEntityClick);
+                $(document).on('click', '#save-entity-btn', handleSaveEntityClick);
+                $(document).on('click', '.delete-entity-btn', handleDeleteEntityClick);
+                $(document).on('click', '#confirm-delete-btn', handleConfirmDeleteClick);
+                $(document).on('click', '#createEntity', function () {
+                    resetForm();
+                    clearEntitiesFormError();
+                });
+            }
+
+            function handlePageLinkClick(e) {
+                e.preventDefault();
+                currentPage = parseInt($(this).data('page'));
+                loadEntities(currentPage, pageSize);
+            }
+
+            function handleEditEntityClick() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/delivery/${id}`,
+                    method: 'GET',
+                    success: function (entity) {
+                        populateEntityForm(entity);
+                    },
+                    error: function (err) {
+                        console.error('Ошибка получения данных сущности:', err);
+                    }
+                });
+            }
+
+            function handleSaveEntityClick() {
+                const id = $(this).data('id');
+                const customerDto = {
+                    id: id,
+                    name: $('#name').val(),
+                    email: $('#email').val(),
+                    dateOfBirth: $('#dateOfBirth').val(),
+                    address: $('#address').val(),
+                    phoneNumber: $('#phoneNumber').val(),
+                    language: $('#language').val(),
+                    status: $('#status').val()
+                };
+
+                if (id) {
+                    updateUser(customerDto);
+                } else {
+                    createUser(customerDto);
+                }
+            }
+
+            function handleDeleteEntityClick() {
+                const id = $(this).data('id');
+                $('#confirm-delete-btn').data('id', id);
+            }
+
+            function handleConfirmDeleteClick() {
+                const id = $(this).data('id');
+                deleteEntity(id);
+            }
+
+            function loadEntities(page = 0, pageSize = 5) {
+                $.ajax({
+                    url: '/delivery/getAll',
+                    method: 'GET',
+                    data: {
+                        page: page,
+                        size: pageSize
+                    },
+                    success: function (response) {
+                        populateTable(response.content);
+                        setupPagination(response.totalPages, page);
+                    },
+                    error: function (err) {
+                        console.error('Ошибка загрузки сущностей:', err);
+                    }
+                });
+            }
+
+            function populateEntityForm(entity) {
+                console.log(entity);
+                let response = entity;
+                $('#nameDelivery').val(response.name);
+                $('#phoneNumberDelivery').val(response.phoneNumber);
+                $('#cityDelivery').val(response.cityId);
+                $('#streetDelivery').val(response.street);
+                $('#buildingDelivery').val(response.building);
+                $('#subDoorDelivery').val(response.subDoor);
+                $('#apartmentDelivery').val(response.apartment);
+                $('#dataDelivery').val(`${response.deliveryDate[0]}-${response.deliveryDate[1]}-${response.deliveryDate[2]}`);
+                $('#timeDelivery').val(`${response.deliveryTime[0]}:${response.deliveryTime[1]}:${response.deliveryTime[2]}`);
+                $('#changeAmount').val(response.changeAmount);
+                $('#statusDelivery').val(response.status.toString());
+                clearEntitiesFormError();
+            }
+
+            function updateUser(customerDto) {
+                $.ajax({
+                    url: `/customer/${customerDto.id}`,
+                    method: 'PUT',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(customerDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#pageSize').val());
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка обновления сущности:', err);
+                        validateEntitiesForm(err);
+                    }
+                });
+            }
+
+            function createUser(customerDto) {
+                $.ajax({
+                    url: '/customer',
+                    method: 'POST',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(customerDto),
+                    success: function () {
+                        closeModal();
+                        loadEntities(currentPage, $('#pageSize').val());
+                        resetForm();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка создания сущности:', err);
+                        validateEntitiesForm(err);
+                    }
+                });
+            }
+
+            function deleteEntity(id) {
+                $.ajax({
+                    url: `/customer/${id}`,
+                    method: 'DELETE',
+                    success: function () {
+                        $('#deleteConfirmModal').modal('hide');
+                        loadEntities(currentPage, $('#pageSize').val());
+                        removeModalBackdrop();
+                    },
+                    error: function (err) {
+                        console.error('Ошибка удаления сущности:', err);
+                    }
+                });
+            }
+
+            function populateTable(entities) {
+                const tableBody = $('#table-body');
+                tableBody.empty();
+
+                if (entities.length === 0) {
+                    tableBody.append('<tr><td colspan="9" class="text-center">Нет данных</td></tr>');
+                } else {
+                    entities.forEach(entity => {
+                        let dateOfBirth = new Date(entity.dateOfBirth).toLocaleDateString('ru-RU');
+                        console.log(entity.status);
+                        const row = `<tr>
+                    <td class="text-center">${entity.id}</td>
+                    <td class="text-center">${entity.name}</td>
+                    <td class="text-center">${entity.phoneNumber}</td>
+                    <td class="text-center">${entity.status}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary edit-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#entityModal">
+                            <i class="ti ti-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#deleteConfirmModal">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+                        tableBody.append(row);
+                    });
+                }
+            }
+
+            function validateEntitiesForm(err) {
+                clearEntitiesFormError();
+                if (err.responseJSON && err.responseJSON.errors) {
+                    const errors = err.responseJSON.errors;
+                    errors.forEach(error => {
+                        $(`#${error.field}Error`).text(error.defaultMessage);
+                    });
+                }
+            }
+
+            function clearEntitiesFormError() {
+                $('#nameError').text('');
+            }
+
+            function closeModal() {
+                removeModalBackdrop();
+            }
+
+            // Очищает форму
+            function resetForm() {
+                $('#entity-form')[0].reset();
+                $('#save-entity-btn').removeData('id');
+            }
+
+            // Удаляет модальное окно
+            function removeModalBackdrop() {
+                $('#entityModal').modal('hide');
+                $('#entityModal').removeClass('show');
+                $('.modal-backdrop').remove();
+            }
+
+            /**
+             * Создает разметку для пагинации
+             * @param totalPages {number} - общее количество страниц
+             * @param currentPage {number} - текущая страница
+             */
+            function setupPagination(totalPages, currentPage) {
+                let paginationItems = '';
+
+                // Первая страница
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(0, '<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-left ti-xs"></i>', 'first');
+                }
+
+                // Предыдущая страница
+                if (currentPage > 0) {
+                    paginationItems += createPaginationItem(currentPage - 1, '<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-left ti-xs"></i>', 'prev');
+                }
+
+                // Номера страниц
+                if (currentPage > 1) {
+                    paginationItems += createPaginationItem(0, '1');
+                    if (currentPage > 2) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                }
+
+                for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                    paginationItems += createPaginationItem(i, i + 1, '', i === currentPage);
+                }
+
+                if (currentPage < totalPages - 2) {
+                    if (currentPage < totalPages - 3) {
+                        paginationItems += createDisabledPaginationItem('...');
+                    }
+                    paginationItems += createPaginationItem(totalPages - 1, totalPages);
+                }
+
+                // Следующая страница
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(currentPage + 1, '<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevron-right ti-xs"></i>', 'next');
+                }
+
+                // Последняя страница
+                if (currentPage < totalPages - 1) {
+                    paginationItems += createPaginationItem(totalPages - 1, '<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                } else {
+                    paginationItems += createDisabledPaginationItem('<i class="ti ti-chevrons-right ti-xs"></i>', 'last');
+                }
+
+                $('#pagination').html(`<ul class="pagination justify-content-center">${paginationItems}</ul>`);
+            }
+
+            // Функции для активной создания разметки
+            function createPaginationItem(page, text, ariaLabel = '', isActive = false) {
+                return `<li class="page-item ${isActive ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${page}" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</a>
+                    </li>`;
+            }
+
+            // Функции для неактивной создания разметки
+            function createDisabledPaginationItem(text, ariaLabel = '') {
+                return `<li class="page-item disabled">
+                        <span class="page-link" ${ariaLabel ? `aria-label="${ariaLabel}"` : ''}>${text}</span>
+                    </li>`;
+            }
+
+        });
+    </script>
+
+
+
+    <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+
+    <script th:replace="customers/scripts::scripts"></script>
+</div>
+</body>
+</html>

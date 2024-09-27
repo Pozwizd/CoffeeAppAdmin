@@ -1,15 +1,16 @@
 package com.spacelab.coffeeapp.dto;
 
 import com.spacelab.coffeeapp.entity.Customer;
-import com.spacelab.coffeeapp.entity.CustomerStatus;
 import com.spacelab.coffeeapp.entity.Language;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.time.LocalDate;
 
 /**
@@ -34,7 +35,7 @@ public class CustomerDto implements Serializable {
     String address;
 
     @Size(min = 3, max = 50, message = "Номер телефона должен быть от 3 до 50 символов")
-    @Pattern(regexp = "^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$", message = "Некорректный номер телефона")
+    @Pattern(regexp = "^\\+?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$", message = "Некорректный номер телефона")
     String phoneNumber;
 
     Language language;
