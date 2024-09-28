@@ -1,0 +1,3 @@
+FROM openjdk:17
+ADD target/CoffeeApp.war
+ENTRYPOINT ["java", "-war", "CoffeeApp.war"]

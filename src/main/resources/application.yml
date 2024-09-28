@@ -10,7 +10,7 @@ spring:
   application:
     name: CoffeeApp-Miahkykh
   datasource:
-    url: jdbc:mysql://localhost:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
+    url: jdbc:mysql://slj.demodev.cc/slj_kinocms?createDatabaseIfNotExist=true
     username: slj_kinocms
     password: "UC7w3mEt57"
   jpa:
@@ -27,9 +27,6 @@ spring:
       max-file-size: 200MB
       max-request-size: 215MB
 
-upload:
-  folder:
-    path: "/home/slj/projects/CoffeeApp-R.Miahkykh/uploads"
 
 logging:
   pattern:
@@ -37,7 +34,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
 
   file:
-    name: "/home/slj/projects/CoffeeApp-R.Miahkykh/logs/kino_cms.log"
+    name: "/home/slj/projects/CoffeeApp-R.Miahkykh/logs/coffee_app.log"
 
   level:
     file: "INFO"
