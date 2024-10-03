@@ -1,4 +1,4 @@
-name: Java CI/CD Pipeline with Docker
+name: Java CI/CD Pipeline with Docker Compose
 
 on:
   push:
@@ -39,17 +39,15 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-      - name: Remove old container (if exists)
+      - name: Use Docker Compose to start services
         run: |
-          docker ps -a --format '{{.Names}}' | grep -q '^coffeeapp$' && \
-          docker stop coffeeapp && \
-          docker rm coffeeapp || echo "No existing container to remove."
+          docker-compose up -d
 
-      - name: Run new Docker container
+      - name: Run tests
         run: |
-          docker run -d --name coffeeapp \
-            -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true \
-            -e SPRING_DATASOURCE_USERNAME=root \
-            -e SPRING_DATASOURCE_PASSWORD=0000 \
-            ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
+          # Добавьте здесь свои команды для тестирования, если нужно
+          echo "Running tests"
+
+      - name: Remove Docker Compose services
+        run: |
+          docker-compose down
