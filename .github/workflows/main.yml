@@ -2,7 +2,7 @@ name: Java CI/CD Pipeline with Docker
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   build:
