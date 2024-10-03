@@ -3,9 +3,6 @@ name: Build and push coffeeapp image and restart containers
 on:
   push:
     branches: [ "master" ]
-    paths:
-      - 'coffeeapp/**'
-
 jobs:
   build:
     runs-on: ubuntu-latest
