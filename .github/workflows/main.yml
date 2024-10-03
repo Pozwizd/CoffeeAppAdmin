@@ -1,4 +1,4 @@
-name: Java CI/CD Pipeline with Docker Compose
+name: Java CI/CD Pipeline with Docker
 
 on:
   push:
@@ -39,15 +39,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-      - name: Use Docker Compose to start services
+      - name: Use Docker Compose to build and push
         run: |
-          docker-compose up -d
-
-      - name: Run tests
-        run: |
-          # Добавьте здесь свои команды для тестирования, если нужно
-          echo "Running tests"
-
-      - name: Remove Docker Compose services
-        run: |
-          docker-compose down
+          docker-compose build
+          docker-compose push
