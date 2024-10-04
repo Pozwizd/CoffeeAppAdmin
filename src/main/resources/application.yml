@@ -1,7 +1,6 @@
 
 
 server:
-  port: 7651
   servlet:
     context-path: /admin-coffee-store
 
