@@ -53,10 +53,12 @@ jobs:
               --name coffeeapp-miahkykh-mysql \
               -e MYSQL_ROOT_PASSWORD=0000 \
               -e MYSQL_DATABASE=CoffeeAppMiahkykh \
-              -e MYSQL_PASSWORD=0000 \
+              -e MYSQL_USER=root \              
+              -e MYSQL_PASSWORD=0000 \        
               -p 3307:3306 \
               mysql:8.0
             echo "MySQL container has been updated"
+
 
       - name: Restart coffeeapp container
         uses: appleboy/ssh-action@v1.0.3
