@@ -70,7 +70,7 @@ jobs:
             docker rm coffeeapp-miahkykh || true
             docker run -d \
               --name coffeeapp-miahkykh \
-              -p 7651:8080 \
+              -p 7649:8080 \
               --net coffeestore-miahkykh \
               -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true \
               -e SPRING_DATASOURCE_USERNAME=root \
