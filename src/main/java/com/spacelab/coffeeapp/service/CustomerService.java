@@ -34,7 +34,6 @@ public interface CustomerService {
 
     Long getCountOfCustomersWithOrdersLastWeek();
 
-    Double calculateChangesLastWeek();
 
     Page<CustomerDto> findCustomersPageByRequest(int page, Integer size, String search);
 }

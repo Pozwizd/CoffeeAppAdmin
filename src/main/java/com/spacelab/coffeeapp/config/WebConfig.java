@@ -18,4 +18,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:static/");
     }
+    // добавить универсальный путь к статическим файлам
+
+
+
+
 }

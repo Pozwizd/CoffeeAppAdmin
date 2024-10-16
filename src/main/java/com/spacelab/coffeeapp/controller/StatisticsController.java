@@ -79,7 +79,7 @@ public class StatisticsController {
     @GetMapping("/customers/changes/last-week")
     @ResponseBody
     public Double getChangesLastWeek() {
-        return customerService.calculateChangesLastWeek();
+        return (double) 0;
     }
 
     @GetMapping("/sales/chart")

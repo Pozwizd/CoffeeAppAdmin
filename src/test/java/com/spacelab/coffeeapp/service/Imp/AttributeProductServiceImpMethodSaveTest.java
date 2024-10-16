@@ -1,16 +1,10 @@
 package com.spacelab.coffeeapp.service.Imp;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.spacelab.coffeeapp.dto.AttributeProductDto;
 import com.spacelab.coffeeapp.dto.AttributeValueDto;
 import com.spacelab.coffeeapp.entity.AttributeProduct;
 import com.spacelab.coffeeapp.entity.AttributeValue;
 import com.spacelab.coffeeapp.entity.Product;
-import com.spacelab.coffeeapp.mapper.AttributeProductMapper;
 import com.spacelab.coffeeapp.repository.AttributeProductRepository;
 import com.spacelab.coffeeapp.service.AttributeValueService;
 import com.spacelab.coffeeapp.service.ProductService;
@@ -23,6 +17,11 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 public class AttributeProductServiceImpMethodSaveTest {
 

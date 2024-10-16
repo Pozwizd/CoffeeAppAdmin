@@ -63,7 +63,6 @@ public class MailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
-        // Добавляем мокающий вывод шаблона, чтобы избежать передачи null в setText
         when(templateEngine.process(eq("email/emailTemplate"), any(Context.class)))
                 .thenReturn("<html><body>Sample Template</body></html>");
 

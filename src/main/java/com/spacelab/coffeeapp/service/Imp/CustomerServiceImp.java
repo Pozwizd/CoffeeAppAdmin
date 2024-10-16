@@ -65,7 +65,6 @@ public class CustomerServiceImp implements CustomerService {
         customerRepository.findById(id).map(customer1 -> {
             customer1.setName(customer.getName());
             customer1.setEmail(customer.getEmail());
-            customer1.setAddress(customer.getAddress());
             customer1.setPhoneNumber(customer.getPhoneNumber());
             customer1.setLanguage(customer.getLanguage());
             customer1.setDateOfBirth(customer.getDateOfBirth());
@@ -137,10 +136,7 @@ public class CustomerServiceImp implements CustomerService {
         return customerRepository.countUniqueCustomersWithOrdersSince(oneWeekAgo);
     }
 
-    @Override
-    public Double calculateChangesLastWeek() {
-        return (double) 0;
-    }
+
 
     @Override
     public Page<CustomerDto> findCustomersPageByRequest(int page, Integer size, String search) {

@@ -1,14 +1,12 @@
 
 
-server:
-  servlet:
-    context-path: /admin-coffee-store
+
 
 spring:
   application:
     name: CoffeeApp-Miahkykh
   datasource:
-    url: jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
+    url: jdbc:mysql://slj.demodev.cc:3310/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
     username: root
     password: "0000"
   jpa:

@@ -12,9 +12,7 @@ import java.lang.annotation.Target;
 
 
 @Constraint(validatedBy = PriceWithDiscountValidator.class)
-
 @Target({ ElementType.TYPE })
-
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidDiscountPrice {
     String message() default "Цена со скидкой не может быть больше обычной цены";

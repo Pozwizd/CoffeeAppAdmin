@@ -19,10 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,7 +98,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     public Page<OrdersDto> getPagedAllOrdersDto(int page, int pageSize) {
-        return null;
+        return orderMapper.toDto(findAllOrders(page, pageSize, null));
     }
 
     @Override
@@ -175,15 +172,17 @@ public class OrderServiceImp implements OrderService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        List<OrderItem> currentOrderItems = savedOrder.getOrderItems();
+        // Скопируем список элементов заказа в изменяемый список
+        List<OrderItem> currentOrderItems = new ArrayList<>(savedOrder.getOrderItems());
 
         List<OrderItem> itemsToRemove = currentOrderItems.stream()
                 .filter(item -> !updatedOrderItemIds.contains(item.getId()))
                 .collect(Collectors.toList());
 
         if (!itemsToRemove.isEmpty()) {
-
-            savedOrder.getOrderItems().removeAll(itemsToRemove);
+            // Удаляем элементы из изменяемого списка
+            currentOrderItems.removeAll(itemsToRemove);
+            savedOrder.setOrderItems(currentOrderItems);  // Обновляем элементы заказа
             boolean deletedNonexistent = orderItemService.deleteAll(itemsToRemove);
         }
 
@@ -194,6 +193,7 @@ public class OrderServiceImp implements OrderService {
         savedOrder.setOrderItems(orderItems);
         return orderRepository.save(savedOrder);
     }
+
 
 
     private Order createOrder(OrdersDto ordersDto) {

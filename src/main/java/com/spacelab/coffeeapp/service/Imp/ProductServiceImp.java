@@ -100,15 +100,7 @@ public class ProductServiceImp implements ProductService {
         });
     }
 
-    @Override
-    public void deleteProduct(Product product) {
-        productRepository.findById(product.getId()).map(product1 -> {
-            product1.setDeleted(true);
-            productRepository.save(product1);
-            return product1;
-        });
-        log.info("Product deleted successfully");
-    }
+
 
     @Override
     public void deleteProduct(Long id) {
@@ -143,20 +135,12 @@ public class ProductServiceImp implements ProductService {
         }
     }
 
+
     @Override
     public long countProducts() {
         return productRepository.count();
     }
 
-    @Override
-    public List<Product> getProductsByCategory(Long categoryId) {
-        return productRepository.findProductByCategory_Id(categoryId);
-    }
-
-    @Override
-    public List<ProductDto> getProductsDtoByCategory(Long categoryId) {
-        return productMapper.toDtoList(getProductsByCategory(categoryId));
-    }
 
     @Override
     public List<TopProduct> getTop3Products() {

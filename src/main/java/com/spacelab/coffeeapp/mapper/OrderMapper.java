@@ -74,7 +74,6 @@ public class OrderMapper {
         customerDto.setName(order.getCustomer().getName());
         customerDto.setEmail(order.getCustomer().getEmail());
         customerDto.setDateOfBirth(order.getCustomer().getDateOfBirth());
-        customerDto.setAddress(order.getCustomer().getAddress());
         customerDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
         customerDto.setLanguage(order.getCustomer().getLanguage());
         customerDto.setStatus(order.getCustomer().getStatus().toString());

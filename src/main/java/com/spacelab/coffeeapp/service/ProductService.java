@@ -30,8 +30,6 @@ public interface ProductService {
 
     void updateProductFromDto(Long id, ProductDto productDto);
 
-    void deleteProduct(Product product);
-
     void deleteProduct(Long id);
 
     Page<Product> findAllProducts(int page, int pageSize);
@@ -41,11 +39,6 @@ public interface ProductService {
     Page<ProductDto> findProductsDtoByRequest(int page, int pageSize, String search);
 
     long countProducts();
-
-    List<Product> getProductsByCategory(Long categoryId);
-
-    List<ProductDto> getProductsDtoByCategory(Long categoryId);
-
 
     List<TopProduct> getTop3Products();
 

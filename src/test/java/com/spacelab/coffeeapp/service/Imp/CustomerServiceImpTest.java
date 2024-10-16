@@ -130,17 +130,14 @@ public class CustomerServiceImpTest {
 
     @Test
     public void testDeleteCustomer() {
-        // Arrange
         Customer customer = Customer.builder().id(1L).name("John Doe").build();
         Customer customer1 = Customer.builder().id(1L).name("John Doe").build();
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer1));
         List<Order> orders = new ArrayList<>();
         when(orderService.CancelAllOrdersByCustomer(customer1)).thenReturn(orders);
 
-        // Act
         customerService.deleteCustomer(customer);
 
-        // Assert
         verify(customerRepository, times(1)).findById(1L);
         verify(orderService, times(1)).CancelAllOrdersByCustomer(customer1);
         verify(customerRepository, times(1)).save(customer1);
@@ -149,17 +146,14 @@ public class CustomerServiceImpTest {
 
     @Test
     void testDeleteCustomer_ById() {
-        // Arrange
         Customer customer = Customer.builder().id(1L).name("John Doe").build();
         Customer customer1 = Customer.builder().id(1L).name("John Doe").build();
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer1));
         List<Order> orders = new ArrayList<>();
         when(orderService.CancelAllOrdersByCustomer(customer1)).thenReturn(orders);
 
-        // Act
         customerService.deleteCustomer(1L);
 
-        // Assert
         verify(customerRepository, times(1)).findById(1L);
         verify(orderService, times(1)).CancelAllOrdersByCustomer(customer1);
         verify(customerRepository, times(1)).save(customer1);
