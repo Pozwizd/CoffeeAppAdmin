@@ -63,7 +63,7 @@ public class CategoryController {
 
     @PostMapping("/")
     @ResponseBody
-    public ResponseEntity<?> createEntity(@RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<?> createEntity(@Valid @RequestBody CategoryDto categoryDto) {
 
         try {
             categoryService.createCategoryFromDto(categoryDto);
