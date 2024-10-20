@@ -14,7 +14,6 @@ public interface CustomerSpecification {
             return criteriaBuilder.or(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), lowerSearchValue),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), lowerSearchValue),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("address")), lowerSearchValue),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("phoneNumber")), lowerSearchValue));
         };
     }

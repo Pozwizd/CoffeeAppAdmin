@@ -32,11 +32,10 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .securityMatcher("/**")
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/assets/**", "/forgotPassword", "/confirmation", "/resetPassword", "/changePassword", "/success").permitAll()
                         .requestMatchers("/**").authenticated()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")

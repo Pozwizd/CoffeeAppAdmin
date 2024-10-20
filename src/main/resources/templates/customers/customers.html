@@ -8,21 +8,23 @@
         <h4 class="fw-bold pt-3" th:text="${title}"></h4>
     </div>
     <div class="card">
-        <div class="card-header py-2 d-flex align-items-center">
-            <div class="d-flex justify-content-end flex-grow-1 m-lg-2">
-                <div class="search-input-wrapper col-md-4">
+        <div class="card-header py-2">
+            <div class="row w-100 align-items-center justify-content-end">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                     <label class="d-flex align-items-center gap-2 w-100">
                         Поиск:
                         <input type="text" id="search" class="form-control" placeholder="Поиск...">
                     </label>
                 </div>
-            </div>
-            <div class="d-flex ms-auto">
-                <button class="btn btn-primary" data-bs-toggle="modal" id="createEntity" data-bs-target="#entityModal">
-                    <i class="ti ti-plus"></i>
-                </button>
+
+                <div class="col-lg-1 col-md-2 col-sm-2">
+                    <button class="btn btn-primary btn-sm w-100" data-bs-toggle="modal" id="createEntity" data-bs-target="#entityModal">
+                        <i class="ti ti-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>
+
 
         <div class="card-body">
             <div>
@@ -34,7 +36,6 @@
                             <td class="text-center">Имя</td>
                             <td class="text-center">Email</td>
                             <td class="text-center">Дата рождения</td>
-                            <td class="text-center">Адрес</td>
                             <td class="text-center">Телефон</td>
                             <td class="text-center">Язык</td>
                             <td class="text-center">Статус</td>
@@ -67,7 +68,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="entityModalLabel">Редактирование</h5>
+                        <h5 class="modal-title" id="entityModalLabel">Создание нового клиента</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="entity-modal-body">
@@ -95,13 +96,6 @@
                             </div>
                             <div class="row">
                                 <div class="col mb-3">
-                                    <label for="address" class="form-label">Адрес</label>
-                                    <input type="text" id="address" class="form-control" placeholder="Введите адрес" />
-                                    <div id="addressError" class="text-danger"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col mb-3">
                                     <label for="phoneNumber" class="form-label">Телефон</label>
                                     <input type="text" id="phoneNumber" class="form-control" placeholder="Введите телефон" />
                                     <div id="phoneNumberError" class="text-danger"></div>
@@ -111,7 +105,6 @@
                                 <div class="col mb-3">
                                     <label for="language" class="form-label">Язык</label>
                                     <select id="language" class="form-control">
-                                        <!-- Языки будут загружены через AJAX -->
                                     </select>
                                     <div id="languageError" class="text-danger"></div>
                                 </div>
@@ -191,6 +184,7 @@
             }
 
             function handleEditEntityClick() {
+
                 const id = $(this).data('id');
                 $.ajax({
                     url: `/customer/${id}`,
@@ -220,7 +214,7 @@
                 if (id) {
                     updateUser(customerDto);
                 } else {
-                    createUser(customerDto);
+                    createCustomer(customerDto);
                 }
             }
 
@@ -231,7 +225,7 @@
 
             function handleConfirmDeleteClick() {
                 const id = $(this).data('id');
-                deleteUser(id);
+                deleteCustomer(id);
             }
 
             function loadEntities(page = 0, search = '', pageSize = 5) {
@@ -254,6 +248,7 @@
             }
 
             function populateEntityForm(entity) {
+                $('#entityModalLabel').text('Редактирование клиента');
                 let dateArray = entity.dateOfBirth;
                 let year = dateArray[0];
                 let month = ('0' + dateArray[1]).slice(-2);
@@ -289,7 +284,7 @@
                 });
             }
 
-            function createUser(customerDto) {
+            function createCustomer(customerDto) {
                 $.ajax({
                     url: '/customer',
                     method: 'POST',
@@ -307,7 +302,7 @@
                 });
             }
 
-            function deleteUser(id) {
+            function deleteCustomer(id) {
                 $.ajax({
                     url: `/customer/${id}`,
                     method: 'DELETE',
@@ -364,6 +359,7 @@
 
 
             function clearEntitiesFormError() {
+
                 $('#nameError').text('');
                 $('#emailError').text('');
                 $('#dateOfBirthError').text('');
@@ -380,6 +376,7 @@
             }
 
             function resetForm() {
+                $('#entityModalLabel').text('Создание нового клиента');
                 $('#entity-form')[0].reset();
                 $('#save-entity-btn').removeData('id');
             }

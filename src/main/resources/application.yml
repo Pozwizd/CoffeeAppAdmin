@@ -1,10 +1,12 @@
-
-
-
+#server:
+#  servlet:
+#    context-path: /coffee-app
+#  port: 8080
 
 spring:
   application:
     name: CoffeeApp-Miahkykh
+
   datasource:
     url: jdbc:mysql://slj.demodev.cc:3310/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
     username: root

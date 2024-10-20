@@ -63,7 +63,7 @@ public class CustomerServiceImp implements CustomerService {
     @Override
     public void updateCustomer(Long id, Customer customer) {
         customerRepository.findById(id).map(customer1 -> {
-            customer1.setName(customer.getName());
+            customer1.setName(customer.getName().trim());
             customer1.setEmail(customer.getEmail());
             customer1.setPhoneNumber(customer.getPhoneNumber());
             customer1.setLanguage(customer.getLanguage());
@@ -145,5 +145,15 @@ public class CustomerServiceImp implements CustomerService {
         } else {
             return customerMapper.toDtoListPage(findCustomerByRequest(page, size, search));
         }
+    }
+
+    @Override
+    public Customer getCustomerByEmail(String email) {
+        return customerRepository.getCustomerByEmail(email);
+    }
+
+    @Override
+    public Customer getCustomerByPhoneNumber(String phoneNumber) {
+        return customerRepository.findByPhoneNumber(phoneNumber).orElse(null);
     }
 }

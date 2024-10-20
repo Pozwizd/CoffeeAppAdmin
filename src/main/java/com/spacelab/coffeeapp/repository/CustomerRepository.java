@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {
@@ -25,4 +26,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSp
 
     @Query("SELECT COUNT(DISTINCT o.customer.id) FROM Order o WHERE o.dateTimeOfCreate >= :oneWeekAgo")
     Long countUniqueCustomersWithOrdersSince(LocalDateTime oneWeekAgo);
+
+    Customer getCustomerByEmail(String email);
+
+    Optional<Customer> findByPhoneNumber(String s);
 }
