@@ -100,13 +100,19 @@
 
 
     </div>
-
+    <script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+    <script th:src="@{/assets/vendor/libs/select2/select2.js}"></script>
+    <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
     <script th:inline="javascript">
         let attributeProduct = [[${attributeProduct}]];
         console.log("Сущность аттрибута продукта:", attributeProduct);
-        populateFormById(attributeProduct)
+        if(attributeProduct!=null || attributeProduct!=undefined) {
+            populateFormById(attributeProduct)
+        }
+
 
         function populateFormById(data) {
+
             $('#name').val(data.name);
             $('#type').val(data.type);
             $('#status').prop('checked', data.status);
@@ -137,7 +143,7 @@
                 let id = data.id === undefined || data.id === null || data.id === '' ? 'create' : data.id;
                 clearFormAttributeFormError();
                 $.ajax({
-                    url: '/attribute/' + id,
+                    url: 'attribute/' + id,
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data),
@@ -248,7 +254,7 @@
 
                 clearFormAttributeValueFormError()
                 $.ajax({
-                    url: '/attribute/attributeValue/validate', // URL куда будет отправлен запрос
+                    url: 'attribute/attributeValue/validate', // URL куда будет отправлен запрос
                     type: 'POST', // Тип запроса POST
                     contentType: 'application/json', // Тип данных, которые отправляем
                     data: JSON.stringify(attributeValueDto),
@@ -393,7 +399,6 @@
         });
     </script>
 
-    <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 
 
     <div class="modal fade" id="entityModal" tabindex="-1" aria-hidden="true">

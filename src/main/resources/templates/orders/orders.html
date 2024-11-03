@@ -131,13 +131,14 @@
                 $(document).on('click', '#confirm-delete-btn', function () {
                     const id = $(this).data('id');
                     $.ajax({
-                        url: `/order/${id}`,
+                        url: `order/${id}`,
                         method: 'DELETE',
                         success: function () {
                             $('#deleteConfirmModal').modal('hide');
                             const search = $('#search').val();
                             loadEntities(currentPage, pageSize, search);
                             removeModalBackdrop();
+                            showToast('success', 'Успех', 'Заказ успешно удален');
                         },
                         error: function (err) {
                             console.error('Ошибка удаления сущности:', err);
@@ -148,7 +149,7 @@
 
             function loadEntities(page, pageSize, search = '') {
                 $.ajax({
-                    url: '/order/getAll',
+                    url: 'order/getAll',
                     method: 'GET',
                     data: {
                         page: page,

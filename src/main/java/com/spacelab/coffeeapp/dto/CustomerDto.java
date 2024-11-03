@@ -2,13 +2,11 @@ package com.spacelab.coffeeapp.dto;
 
 import com.spacelab.coffeeapp.entity.Customer;
 import com.spacelab.coffeeapp.entity.Language;
+import com.spacelab.coffeeapp.validators.customer.PastOrPresentDate;
 import com.spacelab.coffeeapp.validators.customer.emailValidation.EmailUnique;
 import com.spacelab.coffeeapp.validators.customer.emailValidation.FieldEmailUnique;
 import com.spacelab.coffeeapp.validators.customer.phoneNumberValidation.FieldPhoneUnique;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,8 +35,11 @@ public class CustomerDto implements Serializable {
     @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Неверный формат email")
     String email;
 
+    @PastOrPresentDate(message = "Дата рождения не может быть больше сегодняшнего дня")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @NotNull(message = "Дата рождения не может быть пустой")
     LocalDate dateOfBirth;
+
 
     @Size(min = 3, max = 50, message = "Адрес должен быть от 3 до 50 символов")
     String address;

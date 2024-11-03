@@ -155,7 +155,7 @@
             function handleEditEntityClick() {
                 const id = $(this).data('id');
                 $.ajax({
-                    url: `/category/${id}`,
+                    url: `category/${id}`,
                     method: 'GET',
                     success: function (entity) {
                         $('#nameCategory').val(entity.name);
@@ -196,7 +196,7 @@
 
             function getCities() {
                 $.ajax({
-                    url: '/category/status',
+                    url: 'category/status',
                     type: 'GET',
                     success: function (response) {
                         $.each(response, function (index, status) {
@@ -211,7 +211,7 @@
 
             function loadEntities(page = 0, search = '', pageSize = 5) {
                 $.ajax({
-                    url: '/category/getAll',
+                    url: 'category/getAll',
                     method: 'GET',
                     data: {
                         page: page,
@@ -257,7 +257,7 @@
 
             function updateUser(categoryDto) {
                 $.ajax({
-                    url: `/category/${categoryDto.id}`,
+                    url: `category/${categoryDto.id}`,
                     method: 'PUT',
                     contentType: 'application/json; charset=UTF-8',
                     data: JSON.stringify(categoryDto),
@@ -275,7 +275,7 @@
 
             function createUser(categoryDto) {
                 $.ajax({
-                    url: '/category/',
+                    url: 'category/',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(categoryDto),
@@ -293,7 +293,7 @@
 
             function deleteUser(id) {
                 $.ajax({
-                    url: `/category/${id}`,
+                    url: `category/${id}`,
                     method: 'DELETE',
                     success: function () {
                         $('#deleteConfirmModal').modal('hide');

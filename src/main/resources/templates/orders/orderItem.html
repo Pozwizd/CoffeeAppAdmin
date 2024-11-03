@@ -355,7 +355,7 @@
             function sendOrderData() {
                 console.log("Сохранение данных о заказе");
                 $.ajax({
-                    url: '/order/' + order.id,
+                    url: 'order/' + order.id,
                     type: 'POST',
                     data: JSON.stringify(order),
                     contentType: 'application/json',
@@ -515,7 +515,7 @@
                     let categoryId = element.val();
                     if (categoryId) {
                         $.ajax({
-                            url: '/product/getByCategory/' + categoryId,
+                            url: 'product/getByCategory/' + categoryId,
                             method: 'GET',
                             success: function (response) {
                                 $('#product').empty().append('<option value="">Select Product</option>');
@@ -541,7 +541,7 @@
                     const productId = element.val();
                     if (productId) {
                         $.ajax({
-                            url: '/attribute/getAttributesByProduct/' + productId,
+                            url: 'attribute/getAttributesByProduct/' + productId,
                             method: 'GET',
                             success: function (response) {
                                 $('#attributes').empty();
@@ -585,7 +585,7 @@
 
             function loadCategories() {
                 $.ajax({
-                    url: '/category/getAllForOrder',
+                    url: 'category/getAllForOrder',
                     method: 'GET',
                     success: function (response) {
                         $('#category').empty().append('<option value="">Select Category</option>');
@@ -602,7 +602,7 @@
             function recalculationAmount(callback) {
                 let totalAmount = 0;
                 $.ajax({
-                    url: '/attributeValue/getAllForOrder',
+                    url: 'attributeValue/getAllForOrder',
                     method: 'GET',
                     success: function (response) {
                         order.orderItemsDto.forEach(item => {
@@ -635,7 +635,7 @@
 
             function loadStatusDelivery() {
                 $.ajax({
-                    url: '/order/getStatusDelivery',
+                    url: 'order/getStatusDelivery',
                     method: 'GET',
                     success: function (response) {
                         response.forEach(status => {
@@ -663,7 +663,7 @@
 
             function loadCitiesForDelivery() {
                 $.ajax({
-                    url: '/order/getCities',
+                    url: 'order/getCities',
                     method: 'GET',
                     success: function (response) {
                         response.forEach(city => {
@@ -721,7 +721,7 @@
 
             function loadTypePayment() {
                 $.ajax({
-                    url: '/order/typePayment',
+                    url: 'order/typePayment',
                     method: 'GET',
                     success: function (response) {
                         $('#paymentType').empty();
@@ -735,7 +735,7 @@
 
             function loadStatusOrder() {
                 $.ajax({
-                    url: '/order/status',
+                    url: 'order/status',
                     method: 'GET',
                     success: function (response) {
                         $('#orderStatus').empty();

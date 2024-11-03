@@ -187,7 +187,7 @@
 
                 const id = $(this).data('id');
                 $.ajax({
-                    url: `/customer/${id}`,
+                    url: `customer/${id}`,
                     method: 'GET',
                     success: function (entity) {
                         populateEntityForm(entity);
@@ -230,7 +230,7 @@
 
             function loadEntities(page = 0, search = '', pageSize = 5) {
                 $.ajax({
-                    url: '/customer/getAll',
+                    url: 'customer/getAll',
                     method: 'GET',
                     data: {
                         page: page,
@@ -240,6 +240,9 @@
                     success: function (response) {
                         populateTable(response.content);
                         setupPagination(response.totalPages, page);
+                        if (response.content.length === 0 && page > 0) {
+                            loadEntities(page - 1, search, pageSize);
+                        }
                     },
                     error: function (err) {
                         console.error('Ошибка загрузки сущностей:', err);
@@ -268,7 +271,7 @@
 
             function updateUser(customerDto) {
                 $.ajax({
-                    url: `/customer/${customerDto.id}`,
+                    url: `customer/${customerDto.id}`,
                     method: 'PUT',
                     contentType: 'application/json; charset=UTF-8',
                     data: JSON.stringify(customerDto),
@@ -276,6 +279,7 @@
                         closeModal();
                         loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
                         resetForm();
+                        showToast('success', 'Успех', 'Профиль покупателя успешно сохранен');
                     },
                     error: function (err) {
                         validateEntitiesForm(err);
@@ -286,7 +290,7 @@
 
             function createCustomer(customerDto) {
                 $.ajax({
-                    url: '/customer',
+                    url: 'customer',
                     method: 'POST',
                     contentType: 'application/json; charset=UTF-8',
                     data: JSON.stringify(customerDto),
@@ -294,6 +298,7 @@
                         closeModal();
                         loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
                         resetForm();
+                        showToast('success', 'Успех', 'Профиль покупателя успешно сохранен');
                     },
                     error: function (err) {
                         console.error('Ошибка создания сущности:', err);
@@ -304,12 +309,13 @@
 
             function deleteCustomer(id) {
                 $.ajax({
-                    url: `/customer/${id}`,
+                    url: `customer/${id}`,
                     method: 'DELETE',
                     success: function () {
                         $('#deleteConfirmModal').modal('hide');
                         loadEntities(currentPage, $('#search').val(), $('#pageSize').val());
                         removeModalBackdrop();
+                        showToast('success', 'Успех', 'Профиль покупателя успешно удален');
                     },
                     error: function (err) {
                         console.error('Ошибка удаления сущности:', err);
@@ -323,6 +329,7 @@
 
                 if (entities.length === 0) {
                     tableBody.append('<tr><td colspan="9" class="text-center">Нет данных</td></tr>');
+
                 } else {
                     entities.forEach(entity => {
                         let dateOfBirth = new Date(entity.dateOfBirth).toLocaleDateString('ru-RU');
@@ -447,7 +454,7 @@
 
             function loadLanguages() {
                 $.ajax({
-                    url: '/customer/getLanguages',
+                    url: 'customer/getLanguages',
                     method: 'GET',
                     success: function (languages) {
                         populateSelectOptions('#language', languages);
@@ -460,7 +467,7 @@
 
             function loadStatuses() {
                 $.ajax({
-                    url: '/customer/customerStatus',
+                    url: 'customer/customerStatus',
                     method: 'GET',
                     success: function (statuses) {
                         populateSelectOptions('#status', statuses);
@@ -480,7 +487,6 @@
             }
         });
     </script>
-
 
 
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>

@@ -89,7 +89,10 @@ public class CategoryServiceImp implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+        categoryRepository.findById(id).ifPresent(category -> {
+            category.setDeleted(true);
+            categoryRepository.save(category);
+        });
         log.info("Delete category by id: {}", id);
     }
 

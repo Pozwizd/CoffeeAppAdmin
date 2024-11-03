@@ -32,6 +32,8 @@ public class UserController {
         model.addAttribute("title", "Пользователи");
     }
 
+
+
     @GetMapping("/roles")
     public @ResponseBody List<User.Role> getRole() {
         return List.of(User.Role.ADMIN, User.Role.MANAGER);

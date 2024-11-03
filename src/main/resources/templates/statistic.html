@@ -60,11 +60,11 @@
             </div>
 
 
-            <script>
+            <script th:inline="javascript">
                 $(document).ready(function() {
                     function fetchData() {
                         $.ajax({
-                            url: '/orders',
+                            url: 'orders',
                             method: 'GET',
                             success: function(data) {
                                 $('#total-orders').text(data);
@@ -74,7 +74,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/orders/today',
+                            url: "orders/today",
                             method: 'GET',
                             success: function(data) {
                                 $('#today-orders').text(data);
@@ -84,7 +84,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/sales/total',
+                            url: 'sales/total',
                             method: 'GET',
                             success: function(data) {
                                 $('#total-sales').text('$' + data);
@@ -94,7 +94,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/sales/today',
+                            url: 'sales/today',
                             method: 'GET',
                             success: function(data) {
                                 $('#today-sales').text('+$' + data);
@@ -104,7 +104,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/customers',
+                            url: 'customers',
                             method: 'GET',
                             success: function(data) {
                                 $('#total-customers').text(data);
@@ -114,7 +114,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/customers/today',
+                            url: 'customers/today',
                             method: 'GET',
                             success: function(data) {
                                 $('#today-customers').text('+' + data);
@@ -124,7 +124,7 @@
                             }
                         });
                         $.ajax({
-                            url: '/customers/active/last-month',
+                            url: 'customers/active/last-month',
                             method: 'GET',
                             success: function(data) {
                                 $('#active-users').text(data + '%');
@@ -135,7 +135,7 @@
 
                         });
                         $.ajax({
-                            url: '/customers/changes/last-week',
+                            url: 'customers/changes/last-week',
                             method: 'GET',
                             success: function(data) {
                                 $('#changes-last-week').text((data > 0 ? '+' : '') + data + '%');
@@ -175,26 +175,22 @@
 
             <script>
                 $(document).ready(function() {
-                    // Параметры для запроса
-                    const quantity = 5;  // Количество топовых продуктов
-                    const months = 6;    // Количество месяцев для отображения
+                    const quantity = 5;
+                    const months = 6;
 
                     $.ajax({
-                        url: '/sales/chart',
+                        url: 'sales/chart',
                         type: 'GET',
                         data: {
                             quantity: quantity,
                             months: months
                         },
                         success: function(data) {
-                            console.log(data);
-
-                            // Генерация меток для графика (названия месяцев)
                             const labels = [];
-                            const currentMonth = new Date().getMonth() + 1; // Текущий месяц (0-based индекс)
+                            const currentMonth = new Date().getMonth() + 1;
                             for (let i = months - 1; i >= 0; i--) {
                                 const date = new Date();
-                                date.setMonth(currentMonth - i - 1);  // Вычисляем месяц
+                                date.setMonth(currentMonth - i - 1);
                                 labels.push(date.toLocaleString('default', { month: 'short' })); // Короткое название месяца
                             }
 
@@ -244,7 +240,7 @@
 
                 $(document).ready(function() {
                     $.ajax({
-                        url: '/products/top',
+                        url: 'products/top',
                         type: 'GET',
                         success: function(data) {
                             const labels = data.map(product => product.name);
@@ -290,7 +286,6 @@
                         }
                     });
                 });
-                
             </script>
         </div>
 
@@ -327,11 +322,9 @@
         loadEntities()
         function loadEntities() {
             $.ajax({
-                url: '/order/getLastOrdersForStatistics',
+                url: 'order/getLastOrdersForStatistics',
                 method: 'GET',
                 success: function (response) {
-
-                    console.log(response);
                     renderEntitiesTable(response);
                 },
                 error: function (err) {
@@ -347,7 +340,6 @@
             orders.forEach(order => {
                 const dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
                 const dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
-                console.log(order.totalAmount)
                 const row = `
                 <tr>
                     <td class="text-center">${order.id}</td>

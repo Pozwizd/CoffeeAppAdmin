@@ -70,6 +70,13 @@ public class AttributeProductController {
         return new ModelAndView("attribute/attributeProduct").addObject("attributeProduct", attributeProductDto);
     }
 
+    @GetMapping("/create/")
+    public ModelAndView createAttribute(Model model) {
+        model.addAttribute("products", productService.getAllProductsDto());
+        model.addAttribute("typeAttribute", AttributeProduct.TypeAttribute.values());
+        return new ModelAndView("attribute/attributeProduct").addObject("attributeProduct");
+    }
+
 
     @PostMapping({"/create", "/{attributeId}"})
     @ResponseBody

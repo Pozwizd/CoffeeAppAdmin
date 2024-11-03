@@ -16,4 +16,9 @@ public interface CategorySpecification {
             );
         };
     }
+
+    static Specification<Category> byNotDeleted() {
+        return (root, query, builder) ->
+                builder.equal(root.get("deleted"), false);
+    }
 }
