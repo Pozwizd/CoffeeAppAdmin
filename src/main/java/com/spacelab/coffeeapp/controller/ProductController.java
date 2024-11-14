@@ -96,7 +96,7 @@ public class ProductController {
         }
 
         productService.updateProductFromDto(id, productDto);
-        return new ModelAndView("redirect:/product/");
+        return new ModelAndView("redirect:/product");
     }
 
     @PostMapping("/create")
@@ -105,7 +105,7 @@ public class ProductController {
             return new ModelAndView("products/productItem");
         }
         productService.createProductFromDto(productDto);
-        return new ModelAndView("redirect:/product/");
+        return new ModelAndView("redirect:/product");
     }
 
 

@@ -7,8 +7,10 @@ import com.spacelab.coffeeapp.mapper.ProductMapper;
 import com.spacelab.coffeeapp.repository.ProductRepository;
 import com.spacelab.coffeeapp.service.CategoryService;
 import com.spacelab.coffeeapp.service.ProductService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,106 +25,119 @@ import java.util.stream.Collectors;
 import static com.spacelab.coffeeapp.specification.ProductSpecification.*;
 
 @Service
-@AllArgsConstructor
 @Slf4j
+@Transactional
 public class ProductServiceImp implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryService categoryService;
 
+    public ProductServiceImp(ProductRepository productRepository,
+                             ProductMapper productMapper,
+                             @Lazy CategoryService categoryService) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
+        this.categoryService = categoryService;
+    }
+
     @Override
     public void saveProduct(Product product) {
         productRepository.save(product);
-        log.info("Product saved successfully");
+        log.info("Product saved successfully: {}", product);
     }
 
     @Override
     public Optional<Product> getProduct(Long id) {
-        log.info("Fetching product with id: {}", id);
+        log.info("Fetching product with ID: {}", id);
         return productRepository.findById(id);
     }
 
     @Override
     public ProductDto getProductDto(Long id) {
-        return productMapper.toDto(getProduct(id).get());
+        return getProduct(id)
+                .map(productMapper::toDto)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
     }
 
     @Override
     public Product createProduct(Product product) {
-        log.info("Creating product");
+        log.info("Creating product: {}", product);
         saveProduct(product);
         return product;
     }
 
     @Override
     public void updateProduct(Long id, Product product) {
-        log.info("Updating product with id: {}", id);
-        productRepository.findById(id).map(product1 -> {
-            product1.setName(product.getName());
-            product1.setDescription(product.getDescription());
-            product1.setStatus(product.getStatus());
-            product1.setCategory(product.getCategory());
-            productRepository.save(product1);
-            return product1;
-        }).orElseThrow(() -> {
-            log.error("Product not found");
-            return new RuntimeException("Product not found");
+        log.info("Updating product with ID: {}", id);
+        productRepository.findById(id).ifPresentOrElse(existingProduct -> {
+            existingProduct.setName(product.getName());
+            existingProduct.setDescription(product.getDescription());
+            existingProduct.setStatus(product.getStatus());
+            existingProduct.setCategory(product.getCategory());
+            productRepository.save(existingProduct);
+            log.info("Product updated: {}", existingProduct);
+        }, () -> {
+            throw new RuntimeException("Product not found with ID: " + id);
         });
     }
 
     @Override
     public Product createProductFromDto(ProductDto productDto) {
-        log.info("Creating product from dto");
-
+        log.info("Creating product from DTO: {}", productDto);
         Product product = new Product();
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
         product.setStatus(Product.Status.valueOf(productDto.getStatus()));
-        product.setCategory(categoryService.getCategory(Long.valueOf(productDto.getCategory())).get());
+        product.setCategory(categoryService.getCategory(Long.valueOf(productDto.getCategory()))
+                .orElseThrow(() -> new RuntimeException("Category not found for ID: " + productDto.getCategory())));
         saveProduct(product);
         return product;
     }
 
     @Override
     public void updateProductFromDto(Long id, ProductDto productDto) {
-        log.info("Updating product from dto with id: {}", id);
-        productRepository.findById(id).map(product -> {
-            product.setName(productDto.getName());
-            product.setDescription(productDto.getDescription());
-            product.setStatus(Product.Status.valueOf(productDto.getStatus()));
-            product.setCategory(categoryService.getCategory(Long.valueOf(productDto.getCategory())).get());
-            productRepository.save(product);
-            return product;
-        }).orElseThrow(() -> {
-            log.error("Product not found");
-            return new RuntimeException("Product not found");
-        });
+        log.info("Updating product from DTO with ID: {}", id);
+        try {
+            productRepository.findById(id).ifPresentOrElse(product -> {
+                product.setName(productDto.getName());
+                product.setDescription(productDto.getDescription());
+                product.setStatus(Product.Status.valueOf(productDto.getStatus()));
+                product.setCategory(categoryService.getCategory(Long.valueOf(productDto.getCategory()))
+                        .orElseThrow(() -> new RuntimeException("Category not found for ID: " + productDto.getCategory())));
+                productRepository.save(product);
+                log.info("Product updated from DTO: {}", productDto);
+            }, () -> {
+                throw new RuntimeException("Product not found with ID: " + id);
+            });
+        } catch (Exception e) {
+            log.error("Error updating product: {}", e.getMessage(), e);
+            throw e;
+        }
     }
-
-
 
     @Override
     public void deleteProduct(Long id) {
-        productRepository.findById(id).map(product -> {
+        productRepository.findById(id).ifPresentOrElse(product -> {
             product.setDeleted(true);
             productRepository.save(product);
-            return product;
+            log.info("Soft-deleted product with ID: {}", id);
+        }, () -> {
+            throw new RuntimeException("Product not found with ID: " + id);
         });
-        log.info("Product deleted successfully by id: {}", id);
     }
 
     @Override
     public Page<Product> findAllProducts(int page, int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        log.info("Get products with pageable: {}", pageable);
-        return productRepository.findAll(byNotDeleted(),pageable);
+        log.info("Fetching products with pageable: {}", pageable);
+        return productRepository.findAll(byNotDeleted(), pageable);
     }
 
     @Override
     public Page<Product> findProductsByRequest(int page, int pageSize, String search) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        log.info("Get products with pageable and specification: {}", search);
+        log.info("Fetching products with search term: {}", search);
         return productRepository.findAll(search(search).and(byNotDeleted()), pageable);
     }
 
@@ -135,12 +150,12 @@ public class ProductServiceImp implements ProductService {
         }
     }
 
-
     @Override
     public long countProducts() {
-        return productRepository.count();
+        long count = productRepository.count();
+        log.info("Total number of products: {}", count);
+        return count;
     }
-
 
     @Override
     public List<TopProduct> getTop3Products() {
@@ -150,6 +165,11 @@ public class ProductServiceImp implements ProductService {
         double totalQuantity = results.stream()
                 .mapToDouble(result -> ((Number) result[1]).doubleValue())
                 .sum();
+
+        if (totalQuantity == 0) {
+            log.warn("No products found for calculating top products");
+            return Collections.emptyList();
+        }
 
         return results.stream()
                 .map(result -> new TopProduct(
@@ -161,8 +181,8 @@ public class ProductServiceImp implements ProductService {
 
     @Override
     public List<Product> getAllProducts() {
-        log.info("Get all products");
-        return productRepository.findAll();
+        log.info("Fetching all products");
+        return productRepository.findAll(byNotDeleted());
     }
 
     @Override
@@ -177,11 +197,11 @@ public class ProductServiceImp implements ProductService {
 
     @Override
     public Map<String, List<Integer>> findTopProductsSalesByMonth(int quantityProduct, int months) {
-        LocalDateTime startDate = LocalDate.now().minusMonths(months).atStartOfDay();
-        Pageable pageable = PageRequest.of(0, quantityProduct);  // Ограничиваем количество продуктов
-        List<Object[]> results = productRepository.findTopProductsSalesByMonth(startDate, pageable);
+        LocalDate startDate = LocalDate.now().minusMonths(months).withDayOfMonth(1);
+        Pageable pageable = PageRequest.of(0, quantityProduct);
+        List<Object[]> results = productRepository.findTopProductsSalesByMonth(startDate.atStartOfDay(), pageable);
 
-        Map<String, List<Integer>> productSalesByMonth = new HashMap<>();
+        Map<String, List<Integer>> productSalesByMonth = new LinkedHashMap<>();
 
         for (Object[] result : results) {
             String productName = (String) result[0];
@@ -190,10 +210,10 @@ public class ProductServiceImp implements ProductService {
 
             productSalesByMonth.putIfAbsent(productName, new ArrayList<>(Collections.nCopies(months, 0)));
 
-            int index = (int) ChronoUnit.MONTHS.between(
-                    startDate.toLocalDate().withDayOfMonth(1),
+            int index = months - (int) ChronoUnit.MONTHS.between(
+                    startDate,
                     LocalDate.of(LocalDate.now().getYear(), month, 1)
-            );
+            ) - 1;
 
             if (index >= 0 && index < months) {
                 productSalesByMonth.get(productName).set(index, purchaseCount);

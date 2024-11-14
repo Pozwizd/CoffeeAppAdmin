@@ -30,7 +30,7 @@ public interface CategoryService {
 
 
     void deleteCategory(Category category);
-    void deleteCategory(Long id);
+    Category deleteCategory(Long id);
 
 
     Page<Category> findAllCategory(int page, int pageSize);

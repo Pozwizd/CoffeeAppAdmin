@@ -20,10 +20,12 @@
                 </div>
 
                 <div class="col-lg-1 col-md-2 col-sm-2">
-                    <button class="btn btn-primary btn-sm w-100" data-bs-toggle="modal" id="createEntity" data-bs-target="#entityModal">
+                    <a th:href="@{/product/create}" class="btn btn-primary btn-sm w-100">
                         <i class="ti ti-plus"></i>
-                    </button>
+                    </a>
                 </div>
+
+
             </div>
         </div>
 
@@ -153,26 +155,33 @@
             function renderEntitiesTable(entities) {
                 const tableBody = $('#table-body');
                 tableBody.empty();
-                entities.forEach(entity => {
-                    const row = `
-                <tr>
-                    <td class="text-center">${entity.id}</td>
-                    <td class="text-center">${entity.name}</td>
-                    <td class="text-center">${entity.quantity}</td>
-                    <td class="text-center">${entity.status}</td>
-                    <td class="text-center">
-                        <a class="btn btn-sm btn-primary edit-entity-btn" th:href="@{/product/{id}(id=${entity.id})}">
-                            <i class="ti ti-edit"></i>
-                        </a>
 
-                        <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#deleteConfirmModal">
-                            <i class="ti ti-trash"></i>
-                        </button>
-                    </td>
-                </tr>`;
+                entities.forEach(entity => {
+                    // Получаем базовый URL текущего сайта
+                    const baseUrl = window.location.origin; // Например, https://example.com
+                    // Формируем полный путь к ресурсу
+                    const entityUrl = `product/${entity.id}`;
+
+                    const row = `
+            <tr>
+                <td class="text-center">${entity.id}</td>
+                <td class="text-center">${entity.name}</td>
+                <td class="text-center">${entity.quantity}</td>
+                <td class="text-center">${entity.status}</td>
+                <td class="text-center">
+                    <a class="btn btn-sm btn-primary edit-entity-btn" href="${entityUrl}">
+                        <i class="ti ti-edit"></i>
+                    </a>
+
+                    <button class="btn btn-sm btn-danger delete-entity-btn" data-bs-toggle="modal" data-id="${entity.id}" data-bs-target="#deleteConfirmModal">
+                        <i class="ti ti-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
                     tableBody.append(row);
                 });
             }
+
 
             function renderPagination(currentPage, totalPages) {
                 const pagination = $('#pagination');
