@@ -4,6 +4,7 @@
       layout:decorate="template/layout.html" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
 <body>
+
 <div layout:fragment="content">
 
     <!-- Responsive Table -->
@@ -105,6 +106,16 @@
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
     <script th:inline="javascript">
         let attributeProduct = [[${attributeProduct}]];
+        if (attributeProduct === undefined || attributeProduct === null) {
+            attributeProduct = {
+                "id": null,
+                "name": null,
+                "type": null,
+                "productId": [],
+                "status": null,
+                "attributeValues": []
+            };
+        }
         console.log("Сущность аттрибута продукта:", attributeProduct);
         if(attributeProduct!=null || attributeProduct!=undefined) {
             populateFormById(attributeProduct)
@@ -121,11 +132,7 @@
 
 
         $(document).ready(function() {
-
             initializeSelect2();
-
-
-
             $('#select2Primary').on('change', function () {
                 validateSelect2Primary();
             });
@@ -143,7 +150,7 @@
                 let id = data.id === undefined || data.id === null || data.id === '' ? 'create' : data.id;
                 clearFormAttributeFormError();
                 $.ajax({
-                    url: 'attribute/' + id,
+                    url: '' + id,
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data),
@@ -254,12 +261,12 @@
 
                 clearFormAttributeValueFormError()
                 $.ajax({
-                    url: 'attribute/attributeValue/validate', // URL куда будет отправлен запрос
-                    type: 'POST', // Тип запроса POST
-                    contentType: 'application/json', // Тип данных, которые отправляем
+                    url: 'attributeValue/validate',
+                    type: 'POST',
+                    contentType: 'application/json',
                     data: JSON.stringify(attributeValueDto),
                     success: function(response) {
-                        console.log('Успешный ответ:', response); // Обработка успешного ответа
+                        console.log('Успешный ответ:', response);
                         if (name) {
                             updateEntity(attributeValueDto, name);
                         } else {
@@ -269,7 +276,7 @@
                     error: function(error) {
                         validateEntitiesFormAttributeValue(error);
                         console.log('Ошибка:', error);
-                        console.error('Произошла ошибка:', error); // Обработка ошибки
+                        console.error('Произошла ошибка:', error);
                     }
                 });
             }
@@ -486,6 +493,8 @@
         </div>
     </div>
 </div>
+
+
 </body>
 
 

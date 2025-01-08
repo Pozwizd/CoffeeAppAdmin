@@ -64,15 +64,19 @@ public class AttributeProductServiceImp implements AttributeProductService {
                         .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId)))
                 .collect(Collectors.toList());
 
+        attributeProduct = attributeProductRepository.save(attributeProduct);
+
+        attributeProduct.setProducts(productsToAdd);
+
         for (Product product : productsToAdd) {
             if (!attributeProduct.getProducts().contains(product)) {
                 product.getAttributeProducts().add(attributeProduct);
                 productService.saveProduct(product);
             }
         }
-        attributeProduct.setProducts(productsToAdd);
 
-        attributeProduct = attributeProductRepository.save(attributeProduct);
+
+
 
         List<Long> newAttributeValueIds = attributeProductDto.getAttributeValues() != null && !attributeProductDto.getAttributeValues().isEmpty()
                 ? attributeProductDto.getAttributeValues().stream()

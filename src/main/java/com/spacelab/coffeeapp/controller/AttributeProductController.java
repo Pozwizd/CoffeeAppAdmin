@@ -70,7 +70,7 @@ public class AttributeProductController {
         return new ModelAndView("attribute/attributeProduct").addObject("attributeProduct", attributeProductDto);
     }
 
-    @GetMapping("/create/")
+    @GetMapping("/create")
     public ModelAndView createAttribute(Model model) {
         model.addAttribute("products", productService.getAllProductsDto());
         model.addAttribute("typeAttribute", AttributeProduct.TypeAttribute.values());
@@ -80,7 +80,7 @@ public class AttributeProductController {
 
     @PostMapping({"/create", "/{attributeId}"})
     @ResponseBody
-    public ResponseEntity<?> createAttributeProduct(@Valid @RequestBody AttributeProductDto attributeProductDto, @PathVariable String attributeId) {
+    public ResponseEntity<?> createAttributeProduct(@Valid @RequestBody AttributeProductDto attributeProductDto, @PathVariable(required = false) String attributeId) {
 
         Boolean result = attributeProductService.saveAttributeProductFromDto(attributeProductDto);
         System.out.println(result);
