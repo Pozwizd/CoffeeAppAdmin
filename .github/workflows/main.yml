@@ -39,23 +39,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-#      - name: Restart MySQL container
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.SSH_HOST }}
-#          username: ${{ secrets.SSH_USERNAME }}
-#          password: ${{ secrets.SSH_PASSWORD }}
-#          script: |
-#            echo "Restarting MySQL container"
-#            docker stop coffeeapp-miahkykh-mysql || true
-#            docker rm coffeeapp-miahkykh-mysql || true
-#            docker run -d \
-#              --name coffeeapp-miahkykh-mysql \
-#              -e MYSQL_ROOT_PASSWORD=0000 \
-#              -e MYSQL_DATABASE=CoffeeAppMiahkykh \
-#              -p 3310:3306 \
-#              mysql:latest
-#            echo "MySQL container has been updated"
+      - name: Restart MySQL container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            echo "Restarting MySQL container"
+            docker stop coffeeapp-miahkykh-mysql || true
+            docker rm coffeeapp-miahkykh-mysql || true
+            docker run -d \
+              --name coffeeapp-miahkykh-mysql \
+              -e MYSQL_ROOT_PASSWORD=0000 \
+              -e MYSQL_DATABASE=CoffeeAppMiahkykh \
+              -p 3310:3306 \
+              mysql:latest
+            echo "MySQL container has been updated"
 
       - name: Restart coffeeapp container
         uses: appleboy/ssh-action@v1.0.3

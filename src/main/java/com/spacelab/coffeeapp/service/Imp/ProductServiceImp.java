@@ -222,8 +222,4 @@ public class ProductServiceImp implements ProductService {
         return productSalesByMonth;
     }
 
-//    @Override
-//    public List<Product> findProductsByIds(List<Long> newProductIds) {
-//        return productRepository.findAllById(newProductIds);
-//    }
 }

@@ -172,7 +172,6 @@
                     </div>
                 </div>
             </div>
-
             <script>
                 $(document).ready(function() {
                     const quantity = 5;
@@ -201,7 +200,7 @@
                                     label: productName,
                                     data: data[productName],  // Данные для каждого продукта
                                     borderColor: getRandomColor(),  // Случайный цвет для графика
-                                    borderWidth: 1
+                                    borderWidth: data[productName]
                                 });
                             });
 
@@ -287,60 +286,56 @@
                     });
                 });
             </script>
-        </div>
 
-
-
-    </div>
-    <!-- Recent Orders Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card p-3">
-                <div class="card-body">
-                    <h5 class="card-title">Последние заказы</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                            <tr id="table-head">
-                                <td class="text-center">ID</td>
-                                <td class="text-center">Имя</td>
-                                <td class="text-center">Номер телефона</td>
-                                <td class="text-center">Дата создания</td>
-                                <td class="text-center">Сумма заказа</td>
-                                <td class="text-center">Дата готовности</td>
-                                <td class="text-center">Статус</td>
-                            </tr>
-                            </thead>
-                            <tbody id="table-body"></tbody>
-                        </table>
+            <!-- Recent Orders Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card p-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Последние заказы</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                    <tr id="table-head">
+                                        <td class="text-center">ID</td>
+                                        <td class="text-center">Имя</td>
+                                        <td class="text-center">Номер телефона</td>
+                                        <td class="text-center">Дата создания</td>
+                                        <td class="text-center">Сумма заказа</td>
+                                        <td class="text-center">Дата готовности</td>
+                                        <td class="text-center">Статус</td>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <script>
-        loadEntities()
-        function loadEntities() {
-            $.ajax({
-                url: 'order/getLastOrdersForStatistics',
-                method: 'GET',
-                success: function (response) {
-                    renderEntitiesTable(response);
-                },
-                error: function (err) {
-                    console.error('Ошибка загрузки сущностей:', err);
+            <script>
+                loadEntities()
+                function loadEntities() {
+                    $.ajax({
+                        url: 'order/getLastOrdersForStatistics',
+                        method: 'GET',
+                        success: function (response) {
+                            renderEntitiesTable(response);
+                        },
+                        error: function (err) {
+                            console.error('Ошибка загрузки сущностей:', err);
+                        }
+                    });
                 }
-            });
-        }
 
-        function renderEntitiesTable(orders) {
-            const tableBody = $('#table-body');
-            tableBody.empty();
+                function renderEntitiesTable(orders) {
+                    const tableBody = $('#table-body');
+                    tableBody.empty();
 
-            orders.forEach(order => {
-                const dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
-                const dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
-                const row = `
+                    orders.forEach(order => {
+                        const dateTimeOfCreate = formatDateTime(order.dateTimeOfCreate);
+                        const dateTimeOfReady = formatDateTime(order.dateTimeOfReady);
+                        const row = `
                 <tr>
                     <td class="text-center">${order.id}</td>
                     <td class="text-center">${order.customerDto.name}</td>
@@ -351,23 +346,29 @@
                     <td class="text-center">${order.status}</td>
 
                 </tr>`;
-                tableBody.append(row);
-            });
-        }
+                        tableBody.append(row);
+                    });
+                }
 
-        function formatDateTime(dateTimeArray) {
-            const [year, month, day, hour, minute, second] = dateTimeArray;
-            const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
-            return new Date(dateTimeString).toLocaleString('ru-RU', {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric'
-            });
-        }
-    </script>
+                function formatDateTime(dateTimeArray) {
+                    const [year, month, day, hour, minute, second] = dateTimeArray;
+                    const dateTimeString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+                    return new Date(dateTimeString).toLocaleString('ru-RU', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric'
+                    });
+                }
+            </script>
+        </div>
+
+
+
+    </div>
+
     <script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
 </div>
 </body>
