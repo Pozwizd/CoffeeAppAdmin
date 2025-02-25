@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-      - name: Restart MySQL container
+      - name: SSH Restart MySQL container
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -49,15 +49,11 @@ jobs:
             ECHO Restarting MySQL container
             docker stop coffeeapp-miahkykh-mysql 2>NUL
             docker rm coffeeapp-miahkykh-mysql 2>NUL
-            docker run -d ^
-              --name coffeeapp-miahkykh-mysql ^
-              -e MYSQL_ROOT_PASSWORD=0000 ^
-              -e MYSQL_DATABASE=CoffeeAppMiahkykh ^
-              -p 3310:3306 ^
-              mysql:latest
+            docker pull mysql:latest  # Обновляем образ MySQL
+            docker run -d --name coffeeapp-miahkykh-mysql -e MYSQL_ROOT_PASSWORD=0000 -e MYSQL_DATABASE=CoffeeAppMiahkykh -p 3310:3306 mysql:latest
             ECHO MySQL container has been updated
 
-      - name: Restart coffeeapp container
+      - name: SSH Restart coffeeapp container
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -68,12 +64,6 @@ jobs:
             docker stop coffeeapp-miahkykh 2>NUL
             docker rm coffeeapp-miahkykh 2>NUL
             timeout /t 30
-            docker run -d ^
-              --name coffeeapp-miahkykh ^
-              -p 8080:8080 ^
-              --net coffeestore-miahkykh ^
-              -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true ^
-              -e SPRING_DATASOURCE_USERNAME=root ^
-              -e SPRING_DATASOURCE_PASSWORD=0000 ^
-              ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest  # Обновляем образ coffeeapp
+            docker run -d --name coffeeapp-miahkykh -p 8080:8080 --net coffeestore-miahkykh -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=0000 ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
             ECHO coffeeapp container has been updated
