@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-      - name: SSH Restart MySQL container (Windows cmd)
+      - name: SSH Restart MySQL container (Windows cmd) - step 1
         uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -50,13 +50,23 @@ jobs:
             setlocal enabledelayedexpansion
             docker network ls | findstr coffeestore-miahkykh || docker network create coffeestore-miahkykh
             echo Restarting MySQL container
+
+      - name: SSH Restart MySQL container (Windows cmd) - step 2
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            setlocal enabledelayedexpansion
             docker stop coffeeapp-miahkykh-mysql || echo "MySQL container not running"
             docker rm coffeeapp-miahkykh-mysql || echo "MySQL container not found"
             docker pull mysql:latest
             docker run -d --name coffeeapp-miahkykh-mysql --net coffeestore-miahkykh -e MYSQL_ROOT_PASSWORD=0000 -e MYSQL_DATABASE=CoffeeAppMiahkykh -p 3310:3306 mysql:latest
             echo MySQL container has been updated
 
-      - name: SSH Restart coffeeapp container (Windows cmd)
+      - name: SSH Restart coffeeapp container (Windows cmd) - step 1
         uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -67,6 +77,16 @@ jobs:
             setlocal enabledelayedexpansion
             docker network ls | findstr coffeestore-miahkykh || docker network create coffeestore-miahkykh
             echo Restarting coffeeapp container
+
+      - name: SSH Restart coffeeapp container (Windows cmd) - step 2
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            setlocal enabledelayedexpansion
             docker stop coffeeapp-miahkykh || echo "coffeeapp container not running"
             docker rm coffeeapp-miahkykh || echo "coffeeapp container not found"
             docker pull glyuchnoglaz21/coffeeapp-miahkykh:latest
