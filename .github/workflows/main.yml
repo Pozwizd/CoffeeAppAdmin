@@ -3,6 +3,7 @@ name: Build and push coffeeapp image and restart containers
 on:
   push:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,7 +22,6 @@ jobs:
         run: |
           mvn clean package -DskipTests=true
 
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -39,23 +39,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-#      - name: Restart MySQL container
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.SSH_HOST }}
-#          username: ${{ secrets.SSH_USERNAME }}
-#          password: ${{ secrets.SSH_PASSWORD }}
-#          script: |
-#            echo "Restarting MySQL container"
-#            docker stop coffeeapp-miahkykh-mysql || true
-#            docker rm coffeeapp-miahkykh-mysql || true
-#            docker run -d \
-#              --name coffeeapp-miahkykh-mysql \
-#              -e MYSQL_ROOT_PASSWORD=0000 \
-#              -e MYSQL_DATABASE=CoffeeAppMiahkykh \
-#              -p 3310:3306 \
-#              mysql:latest
-#            echo "MySQL container has been updated"
+      - name: Restart MySQL container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            ECHO Restarting MySQL container
+            docker stop coffeeapp-miahkykh-mysql 2>NUL
+            docker rm coffeeapp-miahkykh-mysql 2>NUL
+            docker run -d ^
+              --name coffeeapp-miahkykh-mysql ^
+              -e MYSQL_ROOT_PASSWORD=0000 ^
+              -e MYSQL_DATABASE=CoffeeAppMiahkykh ^
+              -p 3310:3306 ^
+              mysql:latest
+            ECHO MySQL container has been updated
 
       - name: Restart coffeeapp container
         uses: appleboy/ssh-action@v1.0.3
@@ -64,17 +64,16 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            echo "Restarting coffeeapp container"
-            docker stop coffeeapp-miahkykh || true
-            docker rm coffeeapp-miahkykh || true
-            docker sleep 30
-            docker run -d \
-              --name coffeeapp-miahkykh \
-              -p 7649:8080 \
-              --net coffeestore-miahkykh \
-              -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true \
-              -e SPRING_DATASOURCE_USERNAME=root \
-              -e SPRING_DATASOURCE_PASSWORD=0000 \
+            ECHO Restarting coffeeapp container
+            docker stop coffeeapp-miahkykh 2>NUL
+            docker rm coffeeapp-miahkykh 2>NUL
+            timeout /t 30
+            docker run -d ^
+              --name coffeeapp-miahkykh ^
+              -p 8080:8080 ^
+              --net coffeestore-miahkykh ^
+              -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true ^
+              -e SPRING_DATASOURCE_USERNAME=root ^
+              -e SPRING_DATASOURCE_PASSWORD=0000 ^
               ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
-            echo "coffeeapp container has been updated"
-            exit
+            ECHO coffeeapp container has been updated
