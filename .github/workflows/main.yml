@@ -46,18 +46,51 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
+          script_stop: true
+          debug: true
+          command_timeout: "10m"
           script: |
+            @echo on
+            echo === STARTING MYSQL CONTAINER DEPLOYMENT ===
+            echo === Checking Docker version ===
             docker --version
+            
+            echo === Checking existing networks ===
             docker network ls
-
-            docker network ls | findstr coffeestore-miahkykh >nul || docker network create coffeestore-miahkykh
-
-            echo Restarting MySQL container
-            docker stop coffeeapp-miahkykh-mysql 2>nul || echo No MySQL container to stop
-            docker rm coffeeapp-miahkykh-mysql 2>nul || echo No MySQL container to remove
+            
+            echo === Creating network if it doesn't exist ===
+            docker network ls | findstr coffeestore-miahkykh > nul
+            if %ERRORLEVEL% NEQ 0 (
+              echo Creating network coffeestore-miahkykh...
+              docker network create coffeestore-miahkykh
+              echo Network created successfully.
+            ) else (
+              echo Network coffeestore-miahkykh already exists.
+            )
+            
+            echo === Stopping existing MySQL container ===
+            docker ps -a | findstr coffeeapp-miahkykh-mysql > nul
+            if %ERRORLEVEL% EQU 0 (
+              echo Found existing container, stopping it...
+              docker stop coffeeapp-miahkykh-mysql 2>nul || echo Failed to stop container
+              echo Removing container...
+              docker rm coffeeapp-miahkykh-mysql 2>nul || echo Failed to remove container
+              echo Container removed.
+            ) else (
+              echo No existing MySQL container found.
+            )
+            
+            echo === Pulling latest MySQL image ===
             docker pull mysql:latest
+            echo Image pulled successfully.
+            
+            echo === Starting new MySQL container ===
             docker run -d --name coffeeapp-miahkykh-mysql --net coffeestore-miahkykh -e MYSQL_ROOT_PASSWORD=0000 -e MYSQL_DATABASE=CoffeeAppMiahkykh -p 3310:3306 mysql:latest
-            echo MySQL container has been updated
+            
+            echo === Verifying container started ===
+            docker ps | findstr coffeeapp-miahkykh-mysql
+            
+            echo === MySQL container deployment complete ===
 
       - name: SSH Restart coffeeapp container (CMD)
         uses: appleboy/ssh-action@v1.2.1
@@ -66,15 +99,54 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
+          script_stop: true
+          debug: true
+          command_timeout: "30m"
           script: |
+            @echo on
+            echo === STARTING COFFEEAPP CONTAINER DEPLOYMENT ===
+            echo === Checking Docker version ===
             docker --version
+            
+            echo === Checking existing networks ===
             docker network ls
-
-            docker network ls | findstr coffeestore-miahkykh >nul || docker network create coffeestore-miahkykh
-
-            echo Restarting coffeeapp container
-            docker stop coffeeapp-miahkykh 2>nul || echo No coffeeapp container to stop
-            docker rm coffeeapp-miahkykh 2>nul || echo No coffeeapp container to remove
+            
+            echo === Creating network if it doesn't exist ===
+            docker network ls | findstr coffeestore-miahkykh > nul
+            if %ERRORLEVEL% NEQ 0 (
+              echo Creating network coffeestore-miahkykh...
+              docker network create coffeestore-miahkykh
+              echo Network created successfully.
+            ) else (
+              echo Network coffeestore-miahkykh already exists.
+            )
+            
+            echo === Stopping existing coffeeapp container ===
+            docker ps -a | findstr coffeeapp-miahkykh > nul
+            if %ERRORLEVEL% EQU 0 (
+              echo Found existing container, stopping it...
+              docker stop coffeeapp-miahkykh 2>nul || echo Failed to stop container
+              echo Removing container...
+              docker rm coffeeapp-miahkykh 2>nul || echo Failed to remove container
+              echo Container removed.
+            ) else (
+              echo No existing coffeeapp container found.
+            )
+            
+            echo === Pulling latest coffeeapp image ===
             docker pull glyuchnoglaz21/coffeeapp-miahkykh:latest
-            docker run -d --name coffeeapp-miahkykh --net coffeestore-miahkykh -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=0000 glyuchnoglaz21/coffeeapp-miahkykh:latest
-            echo coffeeapp container has been updated
+            echo Image pulled successfully.
+            
+            echo === Starting new coffeeapp container ===
+            docker run -d --name coffeeapp-miahkykh ^
+              --net coffeestore-miahkykh ^
+              -p 8080:8080 ^
+              -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true ^
+              -e SPRING_DATASOURCE_USERNAME=root ^
+              -e SPRING_DATASOURCE_PASSWORD=0000 ^
+              glyuchnoglaz21/coffeeapp-miahkykh:latest
+            
+            echo === Verifying container started ===
+            docker ps | findstr coffeeapp-miahkykh
+            
+            echo === COFFEEAPP container deployment complete ===
