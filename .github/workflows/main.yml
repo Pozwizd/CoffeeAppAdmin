@@ -30,13 +30,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push coffeeapp image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.14.0
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags:
-            - ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
       - name: Restart MySQL container
         uses: appleboy/ssh-action@v1.0.3
