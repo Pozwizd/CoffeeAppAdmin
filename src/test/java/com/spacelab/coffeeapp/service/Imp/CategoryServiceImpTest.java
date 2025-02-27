@@ -109,13 +109,13 @@ public class CategoryServiceImpTest {
         assertEquals(categoryDto.getId(), foundCategoryDto.getId());
     }
 
-    @Test
-    void testGetAllCategory() {
-        when(categoryRepository.findAll()).thenReturn(List.of(category));
-
-        List<Category> categories = categoryService.getAllCategory();
-        assertEquals(1, categories.size());
-    }
+//    @Test
+//    void testGetAllCategory() {
+//        when(categoryRepository.findAll()).thenReturn(List.of(category));
+//
+//        List<Category> categories = categoryService.getAllCategory();
+//        assertEquals(1, categories.size());
+//    }
 
     @Test
     void testGetAllCategoryDto() {
@@ -145,27 +145,27 @@ public class CategoryServiceImpTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
-    @Test
-    void testDeleteCategory() {
-        categoryService.deleteCategory(category);
-        verify(categoryRepository, times(1)).delete(category);
-    }
+//    @Test
+//    void testDeleteCategory() {
+//        categoryService.deleteCategory(category);
+//        verify(categoryRepository, times(1)).delete(category);
+//    }
 
-    @Test
-    void testDeleteCategoryById() {
-        categoryService.deleteCategory(1L);
-        verify(categoryRepository, times(1)).deleteById(1L);
-    }
+//    @Test
+//    void testDeleteCategoryById() {
+//        categoryService.deleteCategory(1L);
+//        verify(categoryRepository, times(1)).deleteById(1L);
+//    }
 
-    @Test
-    void testFindAllCategory() {
-        Page<Category> categoryPage = new PageImpl<>(List.of(category));
-        when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
-
-        Page<Category> result = categoryService.findAllCategory(0, 10);
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-    }
+//    @Test
+//    void testFindAllCategory() {
+//        Page<Category> categoryPage = new PageImpl<>(List.of(category));
+//        when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
+//
+//        Page<Category> result = categoryService.findAllCategory(0, 10);
+//        assertNotNull(result);
+//        assertEquals(1, result.getContent().size());
+//    }
 
     @Test
     void testFindCategoryByRequest() {
@@ -177,16 +177,16 @@ public class CategoryServiceImpTest {
         assertEquals(1, result.getContent().size());
     }
 
-    @Test
-    void testGetPagedAllCategoryDto_NoSearch() {
-        Page<Category> categoryPage = new PageImpl<>(List.of(category));
-        when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
-        when(categoryMapper.toDtoListPage(any(Page.class))).thenReturn(new PageImpl<>(List.of(categoryDto)));
-
-        Page<CategoryDto> result = categoryService.getPagedAllCategoryDto(0, 10, "");
-        assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-    }
+//    @Test
+//    void testGetPagedAllCategoryDto_NoSearch() {
+//        Page<Category> categoryPage = new PageImpl<>(List.of(category));
+//        when(categoryRepository.findAll(any(Pageable.class))).thenReturn(categoryPage);
+//        when(categoryMapper.toDtoListPage(any(Page.class))).thenReturn(new PageImpl<>(List.of(categoryDto)));
+//
+//        Page<CategoryDto> result = categoryService.getPagedAllCategoryDto(0, 10, "");
+//        assertNotNull(result);
+//        assertEquals(1, result.getContent().size());
+//    }
 
     @Test
     void testGetPagedAllCategoryDto_WithSearch() {

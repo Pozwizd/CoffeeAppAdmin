@@ -8,7 +8,7 @@ spring:
     name: CoffeeApp-Miahkykh
 
   datasource:
-    url: jdbc:mysql://slj.demodev.cc:3310/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true
     username: root
     password: "0000"
   jpa:

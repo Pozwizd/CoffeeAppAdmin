@@ -42,13 +42,13 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/assets/**", "/forgotPassword", "/confirmation", "/resetPassword", "/changePassword", "/success").permitAll()
-                        .requestMatchers("/login").permitAll() // Разрешаем доступ к странице логина для неавторизованных пользователей
-                        .anyRequest().authenticated() // Все остальные запросы требуют авторизации
+                        .requestMatchers("/login").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true) // После успешного входа перенаправление на главную
+                        .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
                 .rememberMe((rm) -> rm.tokenRepository(persistentTokenRepository()))

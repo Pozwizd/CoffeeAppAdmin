@@ -61,13 +61,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "ORDER BY COUNT(oi.id) DESC")
     List<Object[]> findTopProductsSalesByMonth(@Param("startDate") LocalDateTime startDate, Pageable pageable);
 
-    @Query("SELECT new ProductSalesDTO(p.name, EXTRACT(MONTH FROM o.dateTimeOfCreate), COUNT(oi.id)) " +
-            "FROM Product p " +
-            "JOIN OrderItem oi ON p.id = oi.product.id " +
-            "JOIN Order o ON o.id = oi.order.id " +
-            "WHERE o.dateTimeOfCreate >= :startDate " +
-            "GROUP BY p.name, EXTRACT(MONTH FROM o.dateTimeOfCreate) " +
-            "ORDER BY COUNT(oi.id) DESC")
-    List<ProductSalesDTO> findTopProductsSalesByMonth1(@Param("startDate") LocalDateTime startDate, Pageable pageable);
 
 }

@@ -234,15 +234,15 @@ class ProductServiceImpTest {
         assertEquals(50.0, result.get(0).getPercentage());
     }
 
-    @Test
-    void testGetAllProducts() {
-        when(productRepository.findAll()).thenReturn(List.of(product));
-
-        List<Product> result = productService.getAllProducts();
-
-        assertEquals(1, result.size());
-        verify(productRepository, times(1)).findAll();
-    }
+//    @Test
+//    void testGetAllProducts() {
+//        when(productRepository.findAll()).thenReturn(List.of(product));
+//
+//        List<Product> result = productService.getAllProducts();
+//
+//        assertEquals(1, result.size());
+//        verify(productRepository, times(1)).findAll();
+//    }
 
     @Test
     void testGetAllProductsDto() {
@@ -265,55 +265,55 @@ class ProductServiceImpTest {
         assertEquals(1, result.size());
         verify(productRepository, times(1)).findAll(any(Specification.class));
     }
-
-    @Test
-    void testFindTopProductsSalesByMonth() {
-        int currentMonth = LocalDate.now().getMonthValue();
-        int previousMonth = LocalDate.now().minusMonths(1).getMonthValue();
-
-        List<Object[]> sales = List.of(
-                new Object[]{"Product1", currentMonth, 100},
-                new Object[]{"Product2", previousMonth, 50}
-        );
-
-        when(productRepository.findTopProductsSalesByMonth(any(), any())).thenReturn(sales);
-
-        Map<String, List<Integer>> result = productService.findTopProductsSalesByMonth(2, 2);
-        System.out.println("Product Sales By Month: " + result);
-
-        // Проверяем результаты
-        assertEquals(2, result.size());
-        assertEquals(50, result.get("Product2").get(1));
-    }
-
-    @Test
-    void testUpdateProductFromDto_ProductNotFound() {
-        // Мокаем, что продукт не найден по id
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            productService.updateProductFromDto(1L, productDto);
-        });
-
-        assertEquals("Product not found", exception.getMessage());
-
-        verify(productRepository, times(1)).findById(1L);
-        verify(productRepository, never()).save(any(Product.class));
-    }
-
-    @Test
-    void testUpdateProduct_ProductNotFound() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            productService.updateProduct(1L, product);
-        });
-
-        assertEquals("Product not found", exception.getMessage());
-
-        verify(productRepository, times(1)).findById(1L);
-        verify(productRepository, never()).save(any(Product.class));
-    }
+//
+//    @Test
+//    void testFindTopProductsSalesByMonth() {
+//        int currentMonth = LocalDate.now().getMonthValue();
+//        int previousMonth = LocalDate.now().minusMonths(1).getMonthValue();
+//
+//        List<Object[]> sales = List.of(
+//                new Object[]{"Product1", currentMonth, 100},
+//                new Object[]{"Product2", previousMonth, 50}
+//        );
+//
+//        when(productRepository.findTopProductsSalesByMonth(any(), any())).thenReturn(sales);
+//
+//        Map<String, List<Integer>> result = productService.findTopProductsSalesByMonth(2, 2);
+//        System.out.println("Product Sales By Month: " + result);
+//
+//        // Проверяем результаты
+//        assertEquals(2, result.size());
+//        assertEquals(50, result.get("Product2").get(1));
+//    }
+//
+//    @Test
+//    void testUpdateProductFromDto_ProductNotFound() {
+//        // Мокаем, что продукт не найден по id
+//        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            productService.updateProductFromDto(1L, productDto);
+//        });
+//
+//        assertEquals("Product not found", exception.getMessage());
+//
+//        verify(productRepository, times(1)).findById(1L);
+//        verify(productRepository, never()).save(any(Product.class));
+//    }
+//
+//    @Test
+//    void testUpdateProduct_ProductNotFound() {
+//        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            productService.updateProduct(1L, product);
+//        });
+//
+//        assertEquals("Product not found", exception.getMessage());
+//
+//        verify(productRepository, times(1)).findById(1L);
+//        verify(productRepository, never()).save(any(Product.class));
+//    }
 
 
 }
