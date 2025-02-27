@@ -18,31 +18,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Debug SSH variables
-        run: |
-          echo "SSH_HOST: ${{ secrets.SSH_HOST }}"
-          echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
-          echo "SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}"
-          echo "DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}"
-          echo "DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}"
-
-      - name: Test connection
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            echo "Starting connection test..."
-            echo "Current date and time on server: $(date)"
-            echo "Connection is established"
-            echo "Checking if docker is running on server..."
-            sudo systemctl status docker
-            echo "Checking if ssh is running on server..."
-            sudo systemctl status ssh
-
       - name: Build app with Maven
-        run: mvn package -DskipTests=true
+        run: mvn package
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -61,57 +38,3 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
-      - name: Restart MySQL container
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            echo "Starting MySQL container restart process..."
-            if ! docker network ls | grep -q "coffeestore-miahkykh"; then
-              echo "Creating docker network coffeestore-miahkykh..."
-              docker network create coffeestore-miahkykh
-            else
-              echo "Docker network coffeestore-miahkykh already exists."
-            fi
-            echo "Stopping MySQL container..."
-            docker stop coffeeapp-miahkykh-mysql || echo "MySQL container not running"
-            echo "Removing MySQL container..."
-            docker rm coffeeapp-miahkykh-mysql || echo "MySQL container not found"
-            echo "Pulling latest MySQL image..."
-            docker pull mysql:latest || (echo "Failed to pull MySQL image" && exit 1)
-            echo "Running new MySQL container..."
-            docker run -d \
-              --name coffeeapp-miahkykh-mysql \
-              --net coffeestore-miahkykh \
-              -e MYSQL_ROOT_PASSWORD=0000 \
-              -e MYSQL_DATABASE=CoffeeAppMiahkykh \
-              -p 3310:3306 \
-              mysql:latest
-            echo "MySQL container has been updated"
-
-      - name: Restart coffeeapp container
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            echo "Starting coffeeapp container restart process..."
-            echo "Stopping coffeeapp container..."
-            docker stop coffeeapp-miahkykh || echo "coffeeapp container not running"
-            echo "Removing coffeeapp container..."
-            docker rm coffeeapp-miahkykh || echo "coffeeapp container not found"
-            echo "Pulling latest coffeeapp image..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest || (echo "Failed to pull coffeeapp image" && exit 1)
-            echo "Running new coffeeapp container..."
-            docker run -d \
-              --name coffeeapp-miahkykh \
-              --net coffeestore-miahkykh \
-              -p 8080:8080 \
-              -e SPRING_DATASOURCE_URL=jdbc:mysql://coffeeapp-miahkykh-mysql:3306/CoffeeAppMiahkykh?createDatabaseIfNotExist=true \
-              -e SPRING_DATASOURCE_USERNAME=root \
-              -e SPRING_DATASOURCE_PASSWORD=0000 \
-              ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
-            echo "coffeeapp container has been updated"
