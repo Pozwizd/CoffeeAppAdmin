@@ -3,6 +3,7 @@ name: Build and push coffeeapp image and restart containers
 on:
   push:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,6 +17,29 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+
+      - name: Debug SSH variables
+        run: |
+          echo "SSH_HOST: ${{ secrets.SSH_HOST }}"
+          echo "SSH_USERNAME: ${{ secrets.SSH_USERNAME }}"
+          echo "SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}"
+          echo "DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}"
+          echo "DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}"
+
+      - name: Test connection
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            echo "Starting connection test..."
+            echo "Current date and time on server: $(date)"
+            echo "Connection is established"
+            echo "Checking if docker is running on server..."
+            sudo systemctl status docker
+            echo "Checking if ssh is running on server..."
+            sudo systemctl status ssh
 
       - name: Build app with Maven
         run: mvn package -DskipTests=true
@@ -44,14 +68,20 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
+            echo "Starting MySQL container restart process..."
             if ! docker network ls | grep -q "coffeestore-miahkykh"; then
+              echo "Creating docker network coffeestore-miahkykh..."
               docker network create coffeestore-miahkykh
+            else
+              echo "Docker network coffeestore-miahkykh already exists."
             fi
-            echo "Restarting MySQL container"
-
+            echo "Stopping MySQL container..."
             docker stop coffeeapp-miahkykh-mysql || echo "MySQL container not running"
+            echo "Removing MySQL container..."
             docker rm coffeeapp-miahkykh-mysql || echo "MySQL container not found"
-            docker pull mysql:latest || exit 1
+            echo "Pulling latest MySQL image..."
+            docker pull mysql:latest || (echo "Failed to pull MySQL image" && exit 1)
+            echo "Running new MySQL container..."
             docker run -d \
               --name coffeeapp-miahkykh-mysql \
               --net coffeestore-miahkykh \
@@ -68,11 +98,14 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            echo "Restarting coffeeapp container"
-
+            echo "Starting coffeeapp container restart process..."
+            echo "Stopping coffeeapp container..."
             docker stop coffeeapp-miahkykh || echo "coffeeapp container not running"
+            echo "Removing coffeeapp container..."
             docker rm coffeeapp-miahkykh || echo "coffeeapp container not found"
-            docker pull ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest || exit 1
+            echo "Pulling latest coffeeapp image..."
+            docker pull ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest || (echo "Failed to pull coffeeapp image" && exit 1)
+            echo "Running new coffeeapp container..."
             docker run -d \
               --name coffeeapp-miahkykh \
               --net coffeestore-miahkykh \
