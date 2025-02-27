@@ -29,10 +29,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.9.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push coffeeapp image
-        uses: docker/build-push-action@v6.14.0
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -40,7 +40,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/coffeeapp-miahkykh:latest
 
       - name: SSH Restart MySQL container (Linux)
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
@@ -65,7 +65,7 @@ jobs:
             echo "MySQL container has been updated"
 
       - name: SSH Restart coffeeapp container (Linux)
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
